@@ -9,35 +9,45 @@ function Subscribe() {
     setError('');
     setLoading(true);
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!email.trim()) {
+    // ✅ اصلاح: ایجاد یک متغیر برای ایمیل تمیزشده (بدون فاصله‌های اضافی)
+    const trimmedEmail = email.trim(); 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+    // 1. بررسی خالی نبودن (با استفاده از ایمیل تمیزشده)
+    if (!trimmedEmail) { 
       setError('لطفاً ایمیل را وارد کنید');
       setLoading(false);
       return;
     }
 
-    if (!emailRegex.test(email)) {
+    // 2. بررسی مطابقت با الگوی Regex (با استفاده از ایمیل تمیزشده)
+    if (!emailRegex.test(trimmedEmail)) {
       setError('ایمیل وارد شده معتبر نیست');
       setLoading(false);
       return;
     }
 
+// client-react/src/pages/Subscribe.js
+
 // 🔐 رمز مخفی برای عبور از پرداخت
-if (email.trim() === 'danial.alinasiri1389@gmail.com') {
-  const expireDays = 1;
+// اگر ایمیل واردشده با رمز مخفی مطابقت کند، بدون پرداخت، اشتراک فعال می‌شود.
+if (trimmedEmail === 'danial.alinasiri1389@gmail.com') {
+  const expireDays = 1; // اشتراک موقت ۱ روزه برای توسعه
   const expireDate = new Date();
   expireDate.setDate(expireDate.getDate() + expireDays);
   localStorage.setItem('ces-paid', 'true');
   localStorage.setItem('ces-expire', expireDate.toISOString());
-  window.location.href = '/CES-car-electronical-simulator/';
+  
+   window.location.href = '/CES-car-electronical-simulator/Dashboard'; 
   return;
 }
+    
+    // اگر رمز مخفی نبود، به درگاه پرداخت هدایت می‌شود
     try {
       const res = await fetch('https://ces-backend-kltl.onrender.com/api/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        // ✅ ارسال ایمیل تمیزشده به سرور
+        body: JSON.stringify({ email: trimmedEmail }), 
       });
 
       const data = await res.json();
@@ -66,11 +76,17 @@ if (email.trim() === 'danial.alinasiri1389@gmail.com') {
         onChange={(e) => setEmail(e.target.value)}
         disabled={loading}
       />
-      <button className="submit-button" onClick={handleSubmit} disabled={loading}>
-        {loading ? 'در حال پردازش...' : 'پرداخت ۵۰۰٬۰۰۰ تومان'}
+      <button 
+        className="submit-button"
+        onClick={handleSubmit}
+        disabled={loading}
+      >
+        {loading ? 'در حال انتقال...' : 'پرداخت و ثبت‌نام'}
       </button>
-      {error && <p className="error-message" style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+
+      {error && <p className="error-message">{error}</p>}
     </div>
   );
 }
+
 export default Subscribe;

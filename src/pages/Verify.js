@@ -24,6 +24,7 @@ function Verify() {
           const expireDays = 30;
           const expireDate = new Date();
           expireDate.setDate(expireDate.getDate() + expireDays);
+          // ✅ ذخیره اشتراک تنها در صورت موفقیت آمیز بودن پرداخت
           localStorage.setItem('ces-paid', 'true');
           localStorage.setItem('ces-expire', expireDate.toISOString());
           setStatus('✅ پرداخت با موفقیت انجام شد! در حال انتقال...');
@@ -43,7 +44,6 @@ function Verify() {
 
     verifyPayment();
   }, []);
-
   return (
     <div className="subscribe-page">
       <h1>{status}</h1>
@@ -51,9 +51,4 @@ function Verify() {
     </div>
   );
 }
-const expireDays = 30; // مثلا اشتراک ۳۰ روزه
-const expireDate = new Date();
-expireDate.setDate(expireDate.getDate() + expireDays);
-localStorage.setItem('ces-paid', 'true');
-localStorage.setItem('ces-expire', expireDate.toISOString());
 export default Verify;

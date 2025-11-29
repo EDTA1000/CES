@@ -1,0 +1,211 @@
+/* ============================= */
+/* Root & Base Styles */
+/* ============================= */
+:root {
+  --bg: #0f1115;
+  --bg-panel: #151922;
+  --bg-elev: #1f232b;
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #ffffff;
+  --text-dim: #b0b0b0;
+  --color-accent: #4CC9F0;
+  --color-primary: #7209B7;
+  --shadow-1: 0 4px 12px rgba(0,0,0,0.2);
+  --shadow-2: 0 8px 20px rgba(0,0,0,0.4);
+  --node-radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Tahoma, sans-serif;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  overflow: hidden; /* Prevent scrolling */
+}
+
+/* ============================= */
+/* Simulator Layout (3D Context) */
+/* ============================= */
+.simulator {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr; /* 3-column layout: Tools | Canvas/3D | Output */
+  gap: 16px;
+  height: 100vh;
+  padding: 16px;
+  
+  /* --- 3D SETUP --- */
+  perspective: 1200px; /* Defines the depth of the 3D space */
+  transform-style: preserve-3d;
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-1);
+  padding: 16px;
+  overflow-y: auto;
+  /* Add slight Z-lift for 3D UI effect */
+  transform: translateZ(20px); 
+}
+
+/* ============================= */
+/* Assembly Canvas (Interactive Area) */
+/* ============================= */
+.canvas {
+  position: relative;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-2);
+  
+  /* Enables 3D context for child nodes */
+  transform-style: preserve-3d; 
+  transform: rotateX(5deg) translateZ(-10px); /* Subtle rotation for ground effect */
+  transition: transform 0.5s ease;
+  overflow: hidden;
+}
+
+.canvas-title {
+    position: absolute;
+    top: 10px;
+    right: 16px;
+    color: var(--text-dim);
+    z-index: 10;
+}
+
+/* ============================= */
+/* Node Styles (Pieces to be assembled) */
+/* ============================= */
+.node {
+  min-width: 180px;
+  background: var(--bg-elev);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--node-radius);
+  box-shadow: var(--shadow-2);
+  user-select: none;
+  transition: box-shadow 120ms ease, transform 120ms ease;
+}
+
+/* Inventory Nodes (in the toolbar) */
+.inventory-node {
+    margin-bottom: 12px;
+    cursor: pointer;
+    transform: translateZ(10px);
+}
+.inventory-node:hover {
+    box-shadow: 0 0 10px rgba(114, 9, 183, 0.7);
+}
+
+/* Draggable Nodes (in the canvas) */
+.canvas .node {
+    position: absolute;
+    cursor: grab;
+    /* Lift node above SVG layer */
+    transform: translateZ(30px); 
+}
+.canvas .node:active { 
+  cursor: grabbing; 
+  transform: translateZ(50px) scale(1.03); 
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+}
+
+
+.node-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 8px 12px; 
+    border-bottom: 1px solid var(--border);
+    background-color: var(--color-primary);
+    border-radius: 12px 12px 0 0;
+}
+.node-title { font-size: 1.1em; font-weight: bold; }
+.icon { font-size: 24px; }
+
+/* ============================= */
+/* Connection Layer (SVG) */
+/* ============================= */
+.connection-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50; /* Below nodes (100+) */
+}
+
+.connection-layer path {
+    stroke: var(--color-accent);
+    stroke-width: 3;
+    fill: none;
+    filter: drop-shadow(0 0 2px rgba(76,201,240,0.5));
+    transition: stroke 0.2s;
+}
+.connection-layer path.active {
+    stroke: #4CC9F0;
+    stroke-dasharray: 5;
+    animation: dash-animation 1s linear infinite;
+}
+@keyframes dash-animation {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+/* ============================= */
+/* 3D Render Area */
+/* ============================= */
+.render-3d-output {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%; /* Occupy bottom half of the canvas */
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
+    z-index: 10;
+}
+.render-3d-output canvas {
+    display: block;
+}
+
+/* Buttons and Controls */
+.btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+.primary-btn {
+    background-color: var(--color-accent);
+    color: var(--bg);
+}
+.primary-btn:disabled {
+    background-color: var(--text-dim);
+    cursor: not-allowed;
+}
+
+/* Output styles */
+#physics-output p {
+    margin: 8px 0;
+}
+#physics-output hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 15px 0;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin: 5px 0 15px 0;
+}
