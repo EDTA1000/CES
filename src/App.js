@@ -85,6 +85,7 @@ function App() {
         <Route path="/upload-models" element={<ModelUploader />} /> 
       </Routes>
     </BrowserRouter>
+    <SpeedInsights />
   );
 }
 
