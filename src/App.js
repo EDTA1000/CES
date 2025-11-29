@@ -75,6 +75,7 @@ function Home() {
 }
 function App() {
   return (
+    <>
     <BrowserRouter basename="/CES-car-electronical-simulator">
       <Routes>
         <Route path="/" element={<Home />} />
@@ -86,6 +87,7 @@ function App() {
       </Routes>
     </BrowserRouter>
     <SpeedInsights />
+    </>
   );
 }
 
