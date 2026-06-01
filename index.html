@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <nav>
+        <button id="btn-simulation" style="display:none;">ورود به شبیه سازی</button>
+        <button id="btn-production" style="display:none;">ورود به تولید قطعات</button>
+        <button onclick="window.location.href='subscribe.html'">خرید اشتراک</button>
+    </nav>
+
+    <div id="comment-section">
+        <h3>نظرات کاربران</h3>
+        <div id="comments-list"></div>
+        <textarea id="new-comment" placeholder="نظر خود را بنویسید..."></textarea>
+        <button onclick="submitComment()">ثبت نظر</button>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
