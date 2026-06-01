@@ -1,6 +1,267 @@
-body { font-family: Tahoma, sans-serif; padding: 20px; }
-nav { margin-bottom: 20px; }
-button { padding: 10px 20px; cursor: pointer; margin-left: 10px; }
-#comments-list { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
-.comment { border-bottom: 1px solid #eee; padding: 5px; }
-.vote-btn { cursor: pointer; color: blue; }
+/*------------------------------------*\
+    Variables & Basic Resets
+\*------------------------------------*/
+:root {
+    --primary-color: #3b82f6; 
+    --primary-hover: #2563eb;
+    --danger-color: #dc2626; 
+    --danger-hover: #b91c1c;
+    --success-color: #10b981; 
+    --success-hover: #047857;
+    --white: #ffffff;
+    --gray-light: #f3f4f6;
+    --gray-dark: #374151;
+    --dark-overlay: rgba(0, 0, 0, 0.6);
+    --glass-effect-bg: rgba(255, 255, 255, 0.9);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.2);
+    --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.5);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--white);
+    margin: 0;
+    color: var(--gray-dark);
+    line-height: 1.6;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none; 
+    white-space: nowrap; 
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: var(--white);
+}
+.btn-danger:hover {
+    background-color: var(--danger-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: var(--white);
+}
+.btn-success:hover {
+    background-color: var(--success-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(16, 185, 121, 0.4);
+}
+
+.btn-cancel {
+    background: var(--gray-light);
+    color: var(--gray-dark);
+}
+.btn-cancel:hover {
+    background: #e5e7eb;
+}
+
+/*------------------------------------*\
+    Header Animation
+\*------------------------------------*/
+.header-animation {
+    width: 100%;
+    height: 300px; /* ارتفاع قسمت انیمیشن */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden; /* برای اینکه المان ها بیرون نروند */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* پس زمینه گریدینت */
+}
+
+.header-animation img, 
+.header-animation div {
+    position: absolute;
+    transition: transform 0.3s ease, opacity 0.5s ease;
+}
+
+#wheel-img {
+    width: 150px; /* اندازه چرخ */
+    height: 150px;
+    z-index: 10;
+    cursor: pointer;
+}
+#wheel-img:hover {
+    transform: scale(1.1) rotate(10deg); /* بزرگ شدن و چرخش کمی */
+}
+
+#lighting-img {
+    width: 300px; /* اندازه رعد و برق */
+    height: auto;
+    z-index: 5;
+    opacity: 0.7; /* شروع با کمی کمرنگ بودن */
+    animation: flicker 3s infinite alternate ease-in-out; /* انیمیشن کمرنگ/پرنگ */
+}
+#lighting-img:hover {
+    transform: scale(1.05);
+}
+
+#ces-text {
+    font-size: 6rem; /* اندازه بزرگ CES */
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.8); /* رنگ سفید با شفافیت */
+    z-index: 20;
+    text-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+}
+
+/* انیمیشن کمرنگ/پرنگ شدن رعد و برق */
+@keyframes flicker {
+    0% { opacity: 0.5; }
+    50% { opacity: 0.9; }
+    100% { opacity: 0.6; }
+}
+
+
+/*------------------------------------*\
+    Main Content Area
+\*------------------------------------*/
+.main-content {
+    width: 100%;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+#subscription-button-area {
+    margin-bottom: 40px;
+    min-height: 60px; /* برای جلوگیری از پرش صفحه */
+}
+
+/* دکمه های ورود مخفی */
+.admin-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.admin-buttons-container .btn {
+    padding: 12px 25px;
+}
+
+/*------------------------------------*\
+    Comment Section
+\*------------------------------------*/
+.comment-section {
+    background: var(--glass-effect-bg);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+    margin-top: 30px;
+}
+
+.comment-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.comment-controls {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.comment-controls textarea {
+    width: calc(100% - 24px); /* کم کردن padding */
+    min-height: 100px;
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 1rem;
+    resize: vertical; /* اجازه تغییر اندازه عمودی */
+}
+
+.comment-controls .actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap; /* برای ریسپانسیو بودن */
+}
+
+.comment-controls #submit-comment-btn {
+    flex-grow: 1; /* دکمه ثبت نظر فضا را پر کند */
+    max-width: 200px; /* حداکثر عرض */
+}
+
+.like-dislike {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.like-dislike .btn {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+}
+.like-dislike .btn span {
+    margin-right: 5px;
+    font-weight: normal;
+}
+
+#comments-list {
+    text-align: right;
+}
+
+.comment-card {
+    background: var(--white);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-right: 5px solid var(--primary-color);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    animation: slideIn 0.4s ease-out;
+    word-wrap: break-word;
+    text-align: right;
+}
+
+/*------------------------------------*\
+    Responsive Design
+\*------------------------------------*/
+@media (max-width: 768px) {
+    .header-animation {
+        height: 200px;
+    }
+    #wheel-img { width: 100px; height: 100px; }
+    #lighting-img { width: 200px; }
+    #ces-text { font-size: 4rem; }
+
+    .comment-controls .actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .comment-controls #submit-comment-btn {
+        max-width: 100%;
+    }
+    .like-dislike {
+        justify-content: center;
+        margin-top: 10px;
+    }
+}

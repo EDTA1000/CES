@@ -1,74 +1,91 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = 3000;
+const USERS_FILE = './users.json';
+const DATA_FILE = './data.json'; // برای ذخیره نظرات و لایک‌ها
 
-// تنظیمات برای خواندن داده‌های JSON از سمت کلاینت
 app.use(bodyParser.json());
-
-// اجازه دادن به اکسپرس برای دسترسی به فایل‌های HTML، CSS و JS شما
 app.use(express.static(path.join(__dirname)));
 
-// --- دیتابیس موقت (در حافظه) ---
-// این بخش فقط یک بار تعریف شده است تا خطا ندهد
-let users = {}; 
-let comments = [
-    { id: 1, text: "این یک نظر نمونه است", votes: 0 },
-    { id: 2, text: "طراحی بسیار خوبی دارد!", votes: 5 }
-];
+// --- دیتابیس‌های موقت (با قابلیت ذخیره‌سازی در فایل) ---
+let users = {};
+let siteData = { comments: [], likes: 0, dislikes: 0 };
 
-// --- مسیرهای API (Back-end Routes) ---
+// خواندن اطلاعات از فایل‌ها در شروع کار
+if (fs.existsSync(USERS_FILE)) users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+if (fs.existsSync(DATA_FILE)) siteData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
 
-// ۱. دریافت وضعیت کاربر (برای نمایش دکمه‌ها در صفحه اصلی)
-app.get('/api/user-status', (req, res) => {
-    // در حال حاضر همه را کاربر عادی فرض می‌کنیم تا سیستم کامل شود
-    res.json({ access: "free", expiry: null });
-});
+const saveAll = () => {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+    fs.writeFileSync(DATA_FILE, JSON.stringify(siteData, null, 2));
+};
 
-// ۲. دریافت لیست نظرات
-app.get('/api/comments', (req, res) => {
-    res.json(comments);
-});
+// --- بخش احراز هویت و اشتراک ---
+app.post('/api/login-or-register', (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "ایمیل الزامی است." });
 
-// ۳. ثبت رای (لایک/دیسلایک)
-app.post('/api/vote', (req, res) => {
-    const { commentId, type } = req.body;
-    const comment = comments.find(c => c.id === commentId);
-    if (comment) {
-        type === 'like' ? comment.votes++ : comment.votes--;
-        res.json({ success: true, newVotes: comment.votes });
+    const now = new Date();
+    let user = Object.values(users).find(u => u.email === email);
+
+    if (!user) {
+        const expiryDate = new Date();
+        expiryDate.setDate(now.getDate() + 7); // ۷ روز رایگان
+
+        user = {
+            email: email,
+            subscriptionType: 'free',
+            expiryDate: expiryDate.toISOString(),
+            id: crypto.randomBytes(8).toString('hex')
+        };
+        users[user.id] = user;
+        saveAll();
+        return res.json({ message: "ثبت‌نام موفق! ۷ روز اشتراک رایگان فعال شد.", user });
     } else {
-        res.status(404).json({ success: false, message: "نظر پیدا نشد" });
+        const isExpired = new Date(user.expiryDate) < now;
+        return res.json({ message: isExpired ? "اشتراک منقضی شده." : "خوش آمدید!", user, isExpired });
     }
 });
 
-// ۴. مدیریت اشتراک و احراز هویت
-app.post('/api/subscribe', (req, res) => {
-    const { email, password } = req.body;
+// --- بخش نظرات و رای‌گیری (Logic اصلی که حذف شده بود) ---
 
-    // چک کردن رمز خاص ادمین
-    if (password === "SECRET_CODE_123") {
-        users[email] = { access: "admin", expiry: "infinite" };
-        return res.json({ success: true, message: "دسترسی ویژه ادمین فعال شد!" });
-    }
-
-    // اگر کاربر جدید بود، اشتراک رایگان یک هفته‌ای بده
-    if (!users[email]) {
-        const oneWeekFromNow = new Date();
-        oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
-        users[email] = { access: "trial", expiry: oneWeekFromNow };
-        return res.json({ success: true, message: "اشتراک رایگان یک هفته‌ای فعال شد!" });
-    }
-
-    res.json({ success: false, message: "این ایمیل قبلاً ثبت شده است." });
+// دریافت لیست نظرات و آمار
+app.get('/api/data', (req, res) => {
+    res.json(siteData);
 });
 
-// راه اندازی سرور
-app.listen(PORT, () => {
-    console.log(`---------------------------------------`);
-    console.log(`🚀 Server is running on http://localhost:${PORT}`);
-    console.log(`📂 Serving files from: ${__dirname}`);
-    console.log(`---------------------------------------`);
+// ثبت نظر جدید
+app.post('/api/comment', (req, res) => {
+    const { text, email, isExpired } = req.body;
+    if (isExpired) return res.status(403).json({ message: "برای ثبت نظر باید اشتراک داشته باشید." });
+    if (!text) return res.status(400).json({ message: "متن نظر خالی است." });
+
+    const newComment = {
+        id: Date.now(),
+        text,
+        email,
+        date: new Date().toLocaleString('fa-IR')
+    };
+    siteData.comments.push(newComment);
+    saveAll();
+    res.json(newComment);
 });
+
+// لایک و دیس‌لایک
+app.post('/api/vote', (req, res) => {
+    const { type, isExpired } = req.body;
+    if (isExpired) return res.status(403).json({ message: "برای رای دادن باید اشتراک داشته باشید." });
+
+    if (type === 'like') siteData.likes++;
+    if (type === 'dislike') siteData.dislikes++;
+    
+    saveAll();
+    res.json({ likes: siteData.likes, dislikes: siteData.dislikes });
+});
+
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
