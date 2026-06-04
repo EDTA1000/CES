@@ -58,4 +58,10 @@ app.get('/api/data', (req, res) => {
     res.json(siteData);
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// استفاده از پورت تعریف شده توسط Render یا پورت ۳۰۰۰ به عنوان جایگزین
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
