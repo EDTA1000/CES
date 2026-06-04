@@ -5,46 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>صفحه اصلی CES</title>
     <link rel="stylesheet" href="main.css">
-    <!-- لینک کردن کتابخانه GSAP برای انیمیشن‌های پیشرفته -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/CSSRulePlugin.min.js"></script>
 </head>
-<body>
+<body dir="rtl">
+    <div id="profile-area"></div>
 
-    <div class="header-animation">
-        <img id="wheel-img" src="https://github.com/EDTA1000/CES/blob/master/picture/Wheel.png" alt="Wheel">
-        <img id="lighting-img" src="https://github.com/EDTA1000/CES/blob/master/picture/lighting.png" alt="Lighting">
-        <img id="CES-img" src="https://github.com/EDTA1000/CES/blob/master/picture/CES.png" alt="CES">
+<div class="header-animation">
+    <div class="top-images-container">
+        <img id="wheel-img" class="header-img" src="https://raw.githubusercontent.com/EDTA1000/CES/master/picture/Wheel.png" alt="Wheel">
+        <img id="lighting-img" class="header-img" src="https://raw.githubusercontent.com/EDTA1000/CES/master/picture/lighting.png" alt="Lighting">
     </div>
 
+    <img id="CES-img" class="header-img" src="https://raw.githubusercontent.com/EDTA1000/CES/master/picture/CES.png" alt="CES">
+</div>
+
+
     <div class="main-content">
-        <div id="subscription-button-area">
-            <!-- دکمه ها بر اساس وضعیت کاربر اینجا نمایش داده می شوند -->
-            <button id="subscribe-btn" class="btn btn-primary">خرید اشتراک</button>
-        </div>
+        <!-- بخش دکمه‌ها (حل مشکل ۴) -->
+        <div id="subscription-button-area"></div>
 
         <div class="comment-section">
             <h2>ثبت نظر</h2>
             <div class="comment-controls">
                 <textarea id="comment-text" placeholder="نظر خود را بنویسید..."></textarea>
-                <div class="actions">
-                    <button id="submit-comment-btn" class="btn btn-primary">ثبت نظر</button>
-                    <div class="like-dislike">
-                        <button id="dislike-btn" class="btn btn-danger">Dislike <span id="dislike-count">0</span></button>
-                        <button id="like-btn" class="btn btn-success">Like <span id="like-count">0</span></button>
-                    </div>
-                </div>
+                <button id="submit-comment-btn" class="btn btn-primary">ثبت نظر</button>
             </div>
             
             <h3>نظرات کاربران</h3>
             <div id="comments-list">
-                <!-- نظرات قبلی اینجا بارگذاری می شوند -->
             </div>
         </div>
     </div>
 
-
     <script src="main.js"></script>
 </body>
+
 </html>

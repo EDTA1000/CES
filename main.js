@@ -1,30 +1,57 @@
 let currentUser = JSON.parse(localStorage.getItem('ces_user')) || null;
 
-// ۱. تابع اصلی برای بارگذاری کل داده‌ها (نظرات و لایک‌ها)
 async function loadSiteData() {
     try {
         const response = await fetch('/api/data');
         const data = await response.json();
         
-        // آپدیت آمار لایک/دیس‌لایک
-        document.getElementById('like-count').innerText = data.likes;
-        document.getElementById('dislike-count').innerText = data.dislikes;
+        // بروزرسانی شمارنده‌های اصلی سایت
+        const likeBtn = document.getElementById('like-btn');
+        const dislikeBtn = document.getElementById('dislike-btn');
+        if(likeBtn) likeBtn.innerHTML = `Like <span id="like-count">${data.likes}</span>`;
+        if(dislikeBtn) dislikeBtn.innerHTML = `Dislike <span id="dislike-count">${data.dislikes}</span>`;
 
-        // نمایش لیست نظرات
         const list = document.getElementById('comments-list');
+        // حل مشکل شماره ۳: استفاده از کلاس‌های CSS تعریف شده
         list.innerHTML = data.comments.map(c => `
             <div class="comment-item">
-                <strong>${c.email}:</strong> <p>${c.text}</p>
-                <small>${c.date}</small>
+                <div class="comment-header">
+                    <span>${c.email}</span>
+                    <span>${c.date}</span>
+                </div>
+                <div class="comment-text">${c.text}</div>
+                <div class="comment-actions">
+                    <button onclick="voteOnComment('like')" class="btn-sm btn-like">👍 لایک</button>
+                    <button onclick="voteOnComment('dislike')" class="btn-sm btn-dislike">👎 دیس</button>
+                </div>
             </div>
         `).reverse().join('');
-    } catch (e) { console.error("خطا در بارگذاری داده‌ها"); }
+    } catch (e) { console.error("Error loading data"); }
 }
 
-// ۲. مدیریت ورود و اشتراک
+// تابع رای دهی (هم برای سایت هم برای کامنت)
+async function voteOnComment(type) {
+    if (!currentUser) return alert("ابتدا باید وارد شوید!");
+
+    try {
+        const response = await fetch('/api/vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, email: currentUser.email })
+        });
+        const result = await response.json();
+        if (response.ok) {
+            alert("رای شما ثبت شد");
+            loadSiteData(); // بروزرسانی ظاهر
+        } else {
+            alert(result.error);
+        }
+    } catch (err) { alert("خطا در اتصال"); }
+}
+
 async function handleLogin() {
     const email = prompt("لطفاً ایمیل خود را وارد کنید:");
-    if (!email) return;
+    if (!email || !email.includes('@')) return alert("ایمیل نامعتبر است!");
 
     const response = await fetch('/api/login-or-register', {
         method: 'POST',
@@ -32,79 +59,57 @@ async function handleLogin() {
         body: JSON.stringify({ email })
     });
     const data = await response.json();
-    
     currentUser = data.user;
     localStorage.setItem('ces_user', JSON.stringify(currentUser));
-    alert(data.message);
     updateUI();
 }
 
-// ۳. مدیریت ثبت نظر
-async function submitComment() {
-    const text = document.getElementById('comment-text').value;
-    if (!currentUser) return alert("ابتدا باید وارد شوید.");
-    
-    const isExpired = new Date(currentUser.expiryDate) < new Date();
-    if (isExpired) return alert("اشتراک شما منقضی شده است.");
-
-    const response = await fetch('/api/comment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, email: currentUser.email, isExpired })
-    });
-
-    if (response.ok) {
-        document.getElementById('comment-text').value = '';
-        loadSiteData();
-    } else {
-        const err = await response.json();
-        alert(err.message);
-    }
+function handleLogout() {
+    localStorage.removeItem('ces_user');
+    currentUser = null;
+    location.reload();
 }
 
-// ۴. مدیریت لایک و دیس‌لایک
-async function vote(type) {
-    if (!currentUser) return alert("ابتدا باید وارد شوید.");
-    const isExpired = new Date(currentUser.expiryDate) < new Date();
-    if (isExpired) return alert("اشتراک شما منقضی شده است.");
-
-    const response = await fetch('/api/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, isExpired })
-    });
-
-    if (response.ok) {
-        const data = await response.json();
-        document.getElementById('like-count').innerText = data.likes;
-        document.getElementById('dislike-count').innerText = data.dislikes;
-    }
-}
-
-// به‌روزرسانی ظاهر سایت بر اساس وضعیت کاربر
 function updateUI() {
     const btnArea = document.getElementById('subscription-button-area');
+    const profileArea = document.getElementById('profile-area');
+
+    // نمایش پروفایل (حل مشکل ۵)
+    if (profileArea) {
+        if (currentUser) {
+            profileArea.innerHTML = `
+                <div class="user-profile">
+                    <div class="user-avatar"></div>
+                    <span>${currentUser.email}</span>
+                    <button class="logout-btn" onclick="handleLogout()">خروج</button>
+                </div>`;
+        } else {
+            profileArea.innerHTML = "";
+        }
+    }
+
+    // نمایش دکمه‌ها و مدیریت اشتراک (حل مشکل ۴)
     if (currentUser) {
         const isExpired = new Date(currentUser.expiryDate) < new Date();
-        btnArea.innerHTML = `
-            <div class="user-info">
-                <span>کاربر: ${currentUser.email}</span> | 
-                <span>انقضا: ${new Date(currentUser.expiryDate).toLocaleDateString('fa-IR')}</span>
-                ${isExpired ? '<b style="color:red"> [منقضی شده]</b>' : ''}
-            </div>
-        `;
+        let html = `<div class="user-controls">
+                        <button class="btn btn-primary">🛠 ساخت قطعه</button>
+                        <button class="btn btn-primary">🧪 شبیه‌سازی</button>
+                    </div>`;
+
+        if (isExpired) {
+            html += `
+                <div class="subscription-box">
+                    <p>⚠️ اشتراک شما منقضی شده است!</p>
+                    <button class="btn btn-free" onclick="location.href='subscribe.html?mode=free'">🎁 دریافت ۷ روز رایگان</button>
+                    <button class="btn btn-buy" onclick="location.href='subscribe.html'">💳 خرید اشتراک</button>
+                    <br>
+                    <button class="btn-no" onclick="handleLogout()">نه متشکرم (خروج)</button>
+                </div>`;
+        }
+        btnArea.innerHTML = html;
     } else {
-        btnArea.innerHTML = `<button onclick="handleLogin()" class="btn btn-primary">ورود / ثبت‌نام با ایمیل</button>`;
+        btnArea.innerHTML = `<button class="btn btn-primary" onclick="handleLogin()">ورود به حساب کاربری</button>`;
     }
 }
 
-// اتصال دکمه‌ها به توابع
-document.getElementById('submit-comment-btn').addEventListener('click', submitComment);
-document.getElementById('like-btn').addEventListener('click', () => vote('like'));
-document.getElementById('dislike-btn').addEventListener('click', () => vote('dislike'));
-
-// اجرای اولیه
-window.onload = () => {
-    updateUI();
-    loadSiteData();
-};
+window.onload = () => { updateUI(); loadSiteData(); };
