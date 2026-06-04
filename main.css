@@ -115,20 +115,19 @@ body {
 .btn-like { background: #e3f2fd; color: #1976d2; }
 .btn-dislike { background: #ffebee; color: #d32f2f; }
 
-/* انیمیشن هدر جدید */
+
 .header-animation {
     position: relative;
-    height: 450px; /* ارتفاع را کمی بیشتر کردم تا جای کافی داشته باشد */
+    height: 400px; 
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: #000; /* پس‌زمینه مشکی برای بهتر دیده شدن رعدوبرق */
+    background: #000; 
 }
 
-/* ظرف نگهدارنده Wheel و Lighting */
 .top-images-container {
     display: flex;
     align-items: center;
@@ -138,34 +137,32 @@ body {
     max-width: 800px;
 }
 
-/* استایل کلی تصاویر */
 .header-img {
-    transition: transform 0.4s ease; /* برای بزرگ شدن نرم هنگام هاور */
+    transition: transform 0.4s ease; 
     cursor: pointer;
     z-index: 2;
 }
 
-/* بزرگ شدن هنگام قرار گرفتن موس روی هر کدام */
 .header-img:hover {
     transform: scale(1.1);
-    z-index: 10; /* وقتی بزرگ می‌شود روی بقیه قرار بگیرد */
+    z-index: 10; 
 }
 
 #wheel-img {
-    width: 250px; /* اندازه دلخواه */
-    order: 1;    /* قرار گرفتن در سمت چپ */
-    animation: rotateWheel 10s linear infinite; /* چرخش مداوم */
+    width: 125px; 
+    order: 2;    
+    animation: rotateWheel 10s linear infinite; 
 }
 
 #lighting-img {
-    width: 250px; /* اندازه دلخواه */
-    order: 2;    /* قرار گرفتن در سمت راست */
-    margin-left: -50px; /* چسبیدن به Wheel (منفی یعنی روی هم بیفتند) */
-    animation: lightningEffect 2s ease-in-out infinite; /* افکت رعدوبرق */
+    width: 250px; 
+    order: 1;   
+    margin-left: -50px; 
+    animation: lightningEffect 2s ease-in-out infinite; 
 }
 
 #CES-img {
-    width: 400px; 
+    width: 350px; 
     margin-top: 20px;
     order: 3;
     z-index: 5;
