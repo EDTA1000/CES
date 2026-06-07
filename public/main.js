@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
         adminControls.style.display = 'none';
     }
 
-    // Fetch and display site data (likes/dislikes) on load
     fetchSiteData();
 
     // Email form submission for signup/access

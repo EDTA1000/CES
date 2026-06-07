@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000;
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "6.67430...×10^(-11)m³/(kg.s²)"; 
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
 
 if (!supabaseUrl || !supabaseKey) {
     throw new Error("Supabase URL and Key are required. Please set SUPABASE_URL and SUPABASE_KEY environment variables.");
@@ -132,7 +132,6 @@ app.post('/vote', async (req, res) => {
     }
 });
 
-// دریافت اطلاعات سایت (like/dislike)
 app.get('/site-data', async (req, res) => {
     try {
         const { data, error } = await supabase
@@ -161,10 +160,7 @@ app.post('/create-piece', async (req, res) => {
     }
 
     try {
-        // Here you would typically insert pieceData into a 'pieces' table
-        // For now, we'll just acknowledge it.
-        // Example: const { data, error } = await supabase.from('pieces').insert([pieceData]);
-        // if (error) throw error;
+
 
         res.status(201).json({ message: "Piece created successfully (simulated).", receivedData: pieceData });
     } catch (error) {
@@ -173,14 +169,9 @@ app.post('/create-piece', async (req, res) => {
     }
 });
 
-// -- Serve Frontend --
-// This assumes your frontend files (index.html, main.js, lighting.png) are in a 'public' folder
-// Make sure to create this folder and place your files there.
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html'); // Adjust path as needed
 });
 
+module.exports = app;
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
