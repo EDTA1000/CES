@@ -7,6 +7,14 @@
   ],
   "routes": [
     {
+      "src": "/(assets|css|js|images|public)/(.*)",
+      "dest": "/$1/$2"
+    },
+    {
+      "src": "/(.*).(css|js|png|jpg|jpeg|ico|svg)",
+      "dest": "/$1.$2"
+    },
+    {
       "src": "/(.*)",
       "dest": "server.js"
     }

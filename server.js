@@ -16,7 +16,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(express.json());
-app.use(express.static('public')); 
+app.use(express.static(path.join(__dirname, 'public'))); 
 
 
 app.post('/signup', async (req, res) => {
