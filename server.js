@@ -133,11 +133,11 @@ app.post('/vote', async (req, res) => {
 // Site Data
 app.get('/site-data', async (req, res) => {
     try {
-        const { data, error } = await supabase
-            .from('site_data')
-            .select('likes, dislikes')
-            .eq('id', 1)
-            .single();
+       const { data, error } = await supabase
+          .from('site_data')
+          .select('*')
+          .eq('some_column', someValue)
+          .maybeSingle();
         if (error) throw error;
         res.json(data || { likes: 0, dislikes: 0 });
     } catch (error) {
