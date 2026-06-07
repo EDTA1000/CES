@@ -1,26 +1,16 @@
 {
   "name": "ces",
   "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
+  "type": "module",
+  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
+    "@supabase/supabase-js": "^2.107.0",
     "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
     "express": "^5.2.1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/edta1000/CES.git"
-  },
-  "bugs": {
-    "url": "https://github.com/edta1000/CES/issues"
-  },
-  "homepage": "https://github.com/edta1000/CES#readme"
+  }
 }

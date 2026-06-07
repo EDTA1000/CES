@@ -5,8 +5,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
-
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
@@ -173,5 +171,5 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html'); // Adjust path as needed
 });
 
-module.exports = app;
+export default app;
 
