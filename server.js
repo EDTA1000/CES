@@ -37,11 +37,10 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// --- ۳. میدل‌ورها ---
-app.use(express.json());
-app.use(express.static(publicPath)); 
 
-// --- ۴. مسیرهای API ---
+app.use(express.json());
+//app.use(express.static(publicPath)); 
+
 
 // Signup
 app.post('/signup', async (req, res) => {
@@ -164,7 +163,18 @@ app.post('/create-piece', async (req, res) => {
 
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html')); 
+    const indexPath = path.join(__dirname, '..', 'public', 'index.html');
+    
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        console.error("INDEX NOT FOUND! Checked paths:", {
+            attempted: indexPath,
+            currentDir: __dirname,
+            parentDir: path.join(__dirname, '..')
+        });
+        res.status(404).send(`File not found at: ${indexPath}`);
+    }
 });
 
 export default app;
