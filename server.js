@@ -1,10 +1,28 @@
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config();
+const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+
+const getPublicPath = () => {
+    const paths = [
+        path.join(__dirname, '..', 'public'), 
+        path.join(__dirname, 'public')        
+    ];
+    
+    for (const p of paths) {
+        if (fs.existsSync(p)) return p;
+    }
+    return paths[0]; 
+};
+
+const publicPath = getPublicPath();
 const app = express();
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -20,8 +38,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(express.json());
-
-app.use(express.static(path.join(rootDir, 'public'))); 
+app.use(express.static(publicPath)); 
 
 app.post('/signup', async (req, res) => {
     const { email } = req.body;
@@ -172,7 +189,7 @@ app.post('/create-piece', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-        res.sendFile(path.join(rootDir, 'public', 'index.html')); 
+        res.sendFile(path.join(publicPath, 'index.html')); 
 });
 
 export default app;
