@@ -25,8 +25,6 @@ const getPublicPath = () => {
 };
 
 const publicPath = getPublicPath();
-
-// --- ۲. تنظیمات محیطی و Supabase ---
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -39,10 +37,9 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 
 app.use(express.json());
-//app.use(express.static(publicPath)); 
+app.use(express.static(__dirname)); 
 
 
-// Signup
 app.post('/signup', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email is required" });
@@ -162,19 +159,8 @@ app.post('/create-piece', async (req, res) => {
 });
 
 
-app.get('/', (req, res) => {
-    const indexPath = path.join(__dirname, '..', 'public', 'index.html');
-    
-    if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-    } else {
-        console.error("INDEX NOT FOUND! Checked paths:", {
-            attempted: indexPath,
-            currentDir: __dirname,
-            parentDir: path.join(__dirname, '..')
-        });
-        res.status(404).send(`File not found at: ${indexPath}`);
-    }
-});
+    app.get('/', (req, res) => {
+        res.sendFile(path.join(__dirname, 'index.html'));
+    });
 
 export default app;
