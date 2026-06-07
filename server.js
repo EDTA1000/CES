@@ -12,6 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const getPublicPath = () => {
+    console.log("DEBUG: __dirname is:", __dirname);
     const paths = [
         path.join(__dirname, '..', 'public'), 
         path.join(__dirname, 'public')       
