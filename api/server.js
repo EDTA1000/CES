@@ -21,7 +21,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -177,6 +177,7 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+const path = require('path');
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
