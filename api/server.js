@@ -1,178 +1,183 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import express from 'express';
-import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
+const express = require("express");
+const path = require("path");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const { createClient } = require("@supabase/supabase-js");
+
 dotenv.config();
 
 const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Supabase URL and Key are required. Please set SUPABASE_URL and SUPABASE_KEY environment variables.");
+  console.error("Missing SUPABASE_URL or SUPABASE_KEY in environment variables");
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); 
+app.use(express.static(path.join(__dirname)));
 
-
-app.post('/signup', async (req, res) => {
-    const { email } = req.body;
-    if (!email) {
-        return res.status(400).json({ error: "Email is required" });
-    }
-
-    try {
-        const { data: existingUser, error: fetchError } = await supabase
-            .from('users')
-            .select('id, expiry_date')
-            .eq('email', email)
-            .single();
-
-        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'No rows found'
-            throw fetchError;
-        }
-
-        if (existingUser) {
-            const expiryDate = new Date(existingUser.expiry_date);
-            if (expiryDate > new Date()) {
-                return res.status(409).json({ message: "User already exists and has valid access." });
-            } else {
-                // Update expiry date if expired
-                const newExpiryDate = new Date();
-                newExpiryDate.setDate(newExpiryDate.getDate() + 7);
-                const { error: updateError } = await supabase
-                    .from('users')
-                    .update({ expiry_date: newExpiryDate.toISOString() })
-                    .eq('id', existingUser.id);
-                if (updateError) throw updateError;
-                return res.json({ message: "User access extended for 7 days." });
-            }
-        } else {
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + 7);
-            const { data, error } = await supabase
-                .from('users')
-                .insert([{ email: email, expiry_date: expiryDate.toISOString() }]);
-            if (error) throw error;
-            res.status(201).json({ message: "User registered. Access valid for 7 days." });
-        }
-    } catch (error) {
-        console.error("Signup error:", error);
-        res.status(500).json({ error: "Failed to process signup" });
-    }
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// ثبت رای و جلوگیری از رای تکراری
-app.post('/vote', async (req, res) => {
-    const { email, type } = req.body; // type can be 'like' or 'dislike'
+app.get("/site-data", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("site_data")
+      .select("*")
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching site data:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    if (!data) {
+      return res.status(404).json({ error: "Site data not found" });
+    }
+
+    return res.json(data);
+  } catch (err) {
+    console.error("Unexpected error in /site-data:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/vote", async (req, res) => {
+  try {
+    const { email, type } = req.body;
+
     if (!email || !type) {
-        return res.status(400).json({ error: "Email and vote type are required" });
-    }
-    if (type !== 'like' && type !== 'dislike') {
-        return res.status(400).json({ error: "Invalid vote type. Must be 'like' or 'dislike'." });
+      return res.status(400).json({ error: "Email and type are required" });
     }
 
-    try {
-        // Check if user has valid access
-        const { data: user, error: userError } = await supabase
-            .from('users')
-            .select('expiry_date')
-            .eq('email', email)
-            .single();
-
-        if (userError || !user || new Date(user.expiry_date) <= new Date()) {
-            return res.status(403).json({ error: "User does not have valid access or access has expired." });
-        }
-
-        // Check if user has already voted
-        const { data: existingVote, error: voteError } = await supabase
-            .from('votes')
-            .select('id')
-            .eq('email', email)
-            .eq('type', type) // Check for the specific type of vote
-            .single();
-
-        if (voteError && voteError.code !== 'PGRST116') {
-            throw voteError;
-        }
-
-        if (existingVote) {
-            return res.status(409).json({ message: "You have already voted for this type." });
-        }
-
-        // Record the vote
-        const { error: insertError } = await supabase
-            .from('votes')
-            .insert([{ email: email, type: type }]);
-        if (insertError) throw insertError;
-
-        // Update site_data counts
-        let updateQuery = supabase.from('site_data').update({});
-        if (type === 'like') {
-            updateQuery = updateQuery.set('likes', () => 'likes + 1');
-        } else {
-            updateQuery = updateQuery.set('dislikes', () => 'dislikes + 1');
-        }
-        updateQuery = updateQuery.eq('id', 1); // Assuming id=1 for the single row
-
-        const { error: dataUpdateError } = await updateQuery;
-        if (dataUpdateError) throw dataUpdateError;
-
-        res.json({ message: "Vote recorded successfully." });
-
-    } catch (error) {
-        console.error("Vote error:", error);
-        res.status(500).json({ error: "Failed to record vote" });
+    if (type !== "like" && type !== "dislike") {
+      return res.status(400).json({ error: "Type must be like or dislike" });
     }
+
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (userError) {
+      console.error("Error fetching user:", userError);
+      return res.status(500).json({ error: userError.message });
+    }
+
+    if (!user) {
+      return res.status(403).json({ error: "User not found or not subscribed" });
+    }
+
+    if (user.expiry_date) {
+      const expiryDate = new Date(user.expiry_date);
+      const now = new Date();
+
+      if (expiryDate < now) {
+        return res.status(403).json({ error: "Subscription expired" });
+      }
+    }
+
+    const { data: previousVote, error: previousVoteError } = await supabase
+      .from("votes")
+      .select("type")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (previousVoteError) {
+      console.error("Error fetching previous vote:", previousVoteError);
+      return res.status(500).json({ error: previousVoteError.message });
+    }
+
+    const { error: upsertError } = await supabase
+      .from("votes")
+      .upsert(
+        {
+          email,
+          type,
+        },
+        {
+          onConflict: "email",
+        }
+      );
+
+    if (upsertError) {
+      console.error("Error upserting vote:", upsertError);
+      return res.status(500).json({ error: upsertError.message });
+    }
+
+    const { data: siteData, error: siteDataError } = await supabase
+      .from("site_data")
+      .select("*")
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (siteDataError) {
+      console.error("Error fetching site data for update:", siteDataError);
+      return res.status(500).json({ error: siteDataError.message });
+    }
+
+    if (!siteData) {
+      return res.status(404).json({ error: "Site data row not found" });
+    }
+
+    let likes = siteData.likes || 0;
+    let dislikes = siteData.dislikes || 0;
+
+    if (previousVote) {
+      if (previousVote.type === "like") {
+        likes = Math.max(0, likes - 1);
+      } else if (previousVote.type === "dislike") {
+        dislikes = Math.max(0, dislikes - 1);
+      }
+    }
+
+    if (type === "like") {
+      likes += 1;
+    } else if (type === "dislike") {
+      dislikes += 1;
+    }
+
+    const { error: updateError } = await supabase
+      .from("site_data")
+      .update({
+        likes,
+        dislikes,
+      })
+      .eq("id", 1);
+
+    if (updateError) {
+      console.error("Error updating site data:", updateError);
+      return res.status(500).json({ error: updateError.message });
+    }
+
+    return res.json({
+      success: true,
+      message: "Vote recorded successfully",
+      likes,
+      dislikes,
+    });
+  } catch (err) {
+    console.error("Unexpected error in /vote:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 });
 
-app.get('/site-data', async (req, res) => {
-    try {
-        const { data, error } = await supabase
-            .from('site_data')
-            .select('likes, dislikes')
-            .eq('id', 1) // Assuming id=1 for the single row
-            .single();
-        if (error) throw error;
-        res.json(data || { likes: 0, dislikes: 0 });
-    } catch (error) {
-        console.error("Get site data error:", error);
-        res.status(500).json({ error: "Failed to retrieve site data" });
-    }
+app.use((req, res) => {
+  res.status(404).send("Not Found");
 });
 
-// -- Admin Routes --
-app.post('/create-piece', async (req, res) => {
-    const { pieceData, password } = req.body;
+const PORT = process.env.PORT || 3000;
 
-    if (password !== ADMIN_PASSWORD) {
-        return res.status(403).json({ error: "Invalid admin password." });
-    }
-
-    if (!pieceData) {
-        return res.status(400).json({ error: "Piece data is required." });
-    }
-
-    try {
-
-
-        res.status(201).json({ message: "Piece created successfully (simulated).", receivedData: pieceData });
-    } catch (error) {
-        console.error("Create piece error:", error);
-        res.status(500).json({ error: "Failed to create piece." });
-    }
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
-
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html'); // Adjust path as needed
-});
-
-export default app;
-
