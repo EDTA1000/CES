@@ -159,7 +159,7 @@ async function fetchSiteData() {
     const dislikesSpan = document.getElementById('dislikes-count');
 
     try {
-        const response = await fetch('/site-data');
+        const response = await fetch('/api/site-data');
         const data = await response.json();
         if (likesSpan) likesSpan.textContent = data.likes;
         if (dislikesSpan) dislikesSpan.textContent = data.dislikes;
