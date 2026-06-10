@@ -21,7 +21,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -46,7 +46,7 @@ app.get("/api/site-data", async (req, res) => {
 
     return res.json(data);
   } catch (err) {
-    console.error("Unexpected error in /site-data:", err);
+    console.error("Unexpected error in /api/site-data:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -171,27 +171,39 @@ app.post("/vote", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-app.post('/verify-admin', async (req, res) => {
-  const { password } = req.body;
-  const adminPasswordFromEnv = process.env.ADMIN_PASSWORD; 
 
-  if (!adminPasswordFromEnv) {
-    console.error("ADMIN_PASSWORD not set in environment variables.");
-    return res.status(500).json({ error: "Server configuration error" });
-  }
+app.post("/create-piece", async (req, res) => {
+  try {
+    const { password, pieceData } = req.body;
 
-  if (password === adminPasswordFromEnv) {
-    res.json({ success: true, message: "Admin verified" });
-  } else {
-    res.status(401).json({ error: "Invalid password" });
+    if (!process.env.ADMIN_PASSWORD) {
+      console.error("ADMIN_PASSWORD is not set in environment variables.");
+      return res.status(500).json({ error: "Server configuration error." });
+    }
+
+    if (!password) {
+      return res.status(400).json({ error: "Password is required." });
+    }
+
+    if (password !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({ error: "Invalid admin password." });
+    }
+
+    console.log("Admin verified. Creating piece:", pieceData);
+
+    return res.json({ message: "Piece created successfully!" });
+  } catch (err) {
+    console.error("Unexpected error in /create-piece:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 app.use((req, res) => {
   res.status(404).send("Not Found");
 });
 
 const PORT = process.env.PORT || 3000;
-const path = require('path');
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
