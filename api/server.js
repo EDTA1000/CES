@@ -171,7 +171,21 @@ app.post("/vote", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+app.post('/verify-admin', async (req, res) => {
+  const { password } = req.body;
+  const adminPasswordFromEnv = process.env.ADMIN_PASSWORD; 
 
+  if (!adminPasswordFromEnv) {
+    console.error("ADMIN_PASSWORD not set in environment variables.");
+    return res.status(500).json({ error: "Server configuration error" });
+  }
+
+  if (password === adminPasswordFromEnv) {
+    res.json({ success: true, message: "Admin verified" });
+  } else {
+    res.status(401).json({ error: "Invalid password" });
+  }
+});
 app.use((req, res) => {
   res.status(404).send("Not Found");
 });
