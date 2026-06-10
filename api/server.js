@@ -27,7 +27,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.get("/site-data", async (req, res) => {
+app.get("/api/site-data", async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("site_data")
