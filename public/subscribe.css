@@ -12,22 +12,21 @@ body {
 }
 
 #subscribe-animation-gif {
-    width: 200px;
+    width: 2000px;
     height: auto;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
     position: absolute;
-    top: 0; /* فاصله از بالا: 0 */
-    left: 0; /* فاصله از چپ: 0 (برای چسبیدن کامل به چپ) */
-    /* right: 20px; */ /* این خط را حذف کنید یا کامنت کنید */
+    top: 0; 
+    left: 0;
     z-index: 10;
 }
 
 h3 {
     font-size: 2.2em;
     color: #2c3e50;
-    margin-top: 230px; /* این مقدار را بر اساس ارتفاع GIF و فاصله دلخواه تنظیم کنید */
+    margin-top: 230px; 
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
