@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const voteButtons = document.querySelectorAll('.vote-button');
     const adminControls = document.getElementById('admin-controls');
     const messageDiv = document.getElementById('message');
-
+    const subscribeButton = document.getElementById('subscribe-button');
     if (adminControls) adminControls.style.display = 'none';
 
     fetchSiteData();
@@ -14,7 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
             messageDiv.style.color = color;
         }
     };
-
+    if (subscribeButton) {
+        subscribeButton.addEventListener('click', () => {
+            window.location.href = '/subscribe.html'; 
+        });
+    }
 
     emailForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -67,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // فعال‌سازی پنل مدیریت با کلید ترکیبی
     document.addEventListener('keydown', async (event) => {
         if (event.ctrlKey && event.shiftKey && event.code === 'KeyB') {
             event.preventDefault();

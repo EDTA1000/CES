@@ -173,6 +173,19 @@ app.post("/vote", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+   app.use(cors()); 
+    app.use(express.json());
+    app.post('/verify-admin', (req, res) => {
+      const { password } = req.body;
+      if (!password) {
+        return res.status(400).json({ message: 'Password is required' });
+      }
+      if (password === process.env.ADMIN_PASSWORD) {
+        res.status(200).json({ message: 'Admin verified' });
+      } else {
+        res.status(401).json({ message: 'Invalid password' });
+      }
+    });
 
 app.post("/create-piece", async (req, res) => {
   try {
@@ -204,7 +217,5 @@ app.use((req, res) => {
   res.status(404).send("Not Found");
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+export default app;
+
