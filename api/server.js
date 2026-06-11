@@ -28,7 +28,18 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
+app.get("/api/comments", async (req, res) => {
+  const { data, error } = await supabase
+    .from("comments")
+    .select("*")
+    .order("created_at", { ascending: false });
 
+  if (error) {
+    return res.status(500).json(error);
+  }
+
+  res.json(data);
+});
 app.get("/api/site-data", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -72,7 +83,86 @@ app.post('/api/check-user-status', async (req, res) => {
     res.status(500).json({ error: 'خطا در دیتابیس' });
   }
 });
+app.post("/api/comment-vote", async (req, res) => {
 
+  const { email, commentId, type } = req.body;
+
+  const { error } = await supabase
+    .from("comment_votes")
+    .upsert(
+      {
+        comment_id: commentId,
+        email,
+        type
+      },
+      {
+        onConflict: "comment_id,email"
+      }
+    );
+
+  if (error) {
+    return res.status(500).json(error);
+  }
+
+  res.json({
+    success: true
+  });
+
+});
+app.get("/api/comment-votes/:id", async (req, res) => {
+
+  const commentId = req.params.id;
+
+  const { data } = await supabase
+    .from("comment_votes")
+    .select("type")
+    .eq("comment_id", commentId);
+
+  const likes = data.filter(x => x.type === "like").length;
+  const dislikes = data.filter(x => x.type === "dislike").length;
+
+  res.json({
+    likes,
+    dislikes
+  });
+
+});
+app.get("/api/comment-replies/:id", async (req, res) => {
+
+  const { data, error } = await supabase
+    .from("comment_replies")
+    .select("*")
+    .eq("comment_id", req.params.id)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    return res.status(500).json(error);
+  }
+
+  res.json(data);
+
+});
+app.post("/api/comment-reply", async (req, res) => {
+
+  const { email, commentId, content } = req.body;
+
+  const { data, error } = await supabase
+    .from("comment_replies")
+    .insert([
+      {
+        email,
+        comment_id: commentId,
+        content
+      }
+    ]);
+
+  if (error) {
+    return res.status(500).json(error);
+  }
+
+  res.json(data);
+
+});
 app.post('/api/activate-free-trial', async (req, res) => {
   const { email } = req.body;
   try {
@@ -228,7 +318,20 @@ app.post("/vote", async (req, res) => {
 app.get('/simulation', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'simulation.html'));
 });
+app.post("/api/comments", async (req, res) => {
+  const { email, content } = req.body;
 
+  const { data, error } = await supabase
+    .from("comments")
+    .insert([{ email, content }])
+    .select();
+
+  if (error) {
+    return res.status(500).json(error);
+  }
+
+  res.json(data);
+});
 app.get('/create-piece', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'create-piece.html'));
 });
