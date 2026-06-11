@@ -52,6 +52,45 @@ app.get("/api/site-data", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+app.post('/api/check-user-status', async (req, res) => {
+  const { email } = req.body;
+  
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('is_subscribed')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!data) {
+      return res.json({ isNewUser: true });
+    }
+    
+    return res.json({ isNewUser: false });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دیتابیس' });
+  }
+});
+
+app.post('/api/activate-free-trial', async (req, res) => {
+  const { email } = req.body;
+  try {
+    await supabase.from('users').upsert([{ email: email, is_subscribed: true }]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در فعال‌سازی' });
+  }
+});
+app.post('/api/decline-free-trial', async (req, res) => {
+  const { email } = req.body;
+  try {
+    await supabase.from('users').upsert([{ email: email, is_subscribed: false }]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت' });
+  }
+});
 
 app.post("/vote", async (req, res) => {
   try {
