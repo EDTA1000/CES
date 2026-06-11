@@ -74,7 +74,7 @@ body {
 .btn-buy { background: #ff9800; color: white; margin: 5px; }
 .btn-no { background: transparent; color: #888; text-decoration: underline; font-size: 12px; }
 
-/* بخش نظرات (حل مشکل ۳) */
+
 .comment-item {
     background: rgba(255, 255, 255, 0.05);
     padding: 15px;
