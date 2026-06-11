@@ -1,0 +1,96 @@
+body {
+    font-family: 'Tahoma', sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative;
+    overflow-x: hidden;
+}
+
+#subscribe-animation-gif {
+    width: 200px;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    position: absolute;
+    top: 0; /* فاصله از بالا: 0 */
+    left: 0; /* فاصله از چپ: 0 (برای چسبیدن کامل به چپ) */
+    /* right: 20px; */ /* این خط را حذف کنید یا کامنت کنید */
+    z-index: 10;
+}
+
+h3 {
+    font-size: 2.2em;
+    color: #2c3e50;
+    margin-top: 230px; /* این مقدار را بر اساس ارتفاع GIF و فاصله دلخواه تنظیم کنید */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+input[type="email"] {
+    width: 80%;
+    max-width: 400px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    font-size: 1.1em;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="email"]:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+    outline: none;
+}
+
+button {
+    background-color: #2ecc71;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-bottom: 15px;
+    width: 80%;
+    max-width: 300px;
+}
+
+button:hover {
+    background-color: #27ae60;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#subscription-plans {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#subscription-plans button {
+    background-color: #3498db;
+    width: 80%;
+    max-width: 300px;
+    margin-top: 10px;
+}
+
+#subscription-plans button:hover {
+    background-color: #2980b9;
+}
+
+/* استایل برای نمایش مخفی */
+.hidden {
+    display: none;
+}
