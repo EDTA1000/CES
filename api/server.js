@@ -186,6 +186,13 @@ app.post("/vote", async (req, res) => {
         res.status(401).json({ message: 'Invalid password' });
       }
     });
+app.get('/simulation', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'simulation.html'));
+});
+
+app.get('/create-piece', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'create-piece.html'));
+});
 
 app.post("/create-piece", async (req, res) => {
   try {
