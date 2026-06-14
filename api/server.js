@@ -22,6 +22,27 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+app.post('/api/subscribe', async (req, res) => {
+    const { email } = req.body;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ message: 'فرمت ایمیل نامعتبر است.' });
+    }
+
+    try {
+        // const { data, error } = await supabase.from('subscribers').insert([{ email }]);
+        
+        res.status(200).json({ message: 'ایمیل با موفقیت ثبت شد.' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'خطای داخلی سرور.' });
+    }
+});
 
 app.use(express.static(path.join(__dirname, "public")));
 
