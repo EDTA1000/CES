@@ -1,4 +1,3 @@
-
 let currentUser = { email: null };
 
 async function handleComment() {
@@ -17,14 +16,6 @@ async function handleComment() {
         loadComments(); 
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const submitEmailBtn = document.getElementById('submit-email-btn');
-
-    if (submitEmailBtn) {
-        submitEmailBtn.addEventListener('click', handleSubscribe);
-    }
-});
 
 async function handleSubscribe() {
     const emailInput = document.getElementById('email');
@@ -67,6 +58,12 @@ async function buyPlan(planId) {
         return;
     }
 
+    if (planId === '7days-free') {
+        alert('اشتراک رایگان با موفقیت فعال شد.');
+        window.location.href = '/index.html';
+        return;
+    }
+
     try {
         const response = await fetch('/api/purchase', {
             method: 'POST',
@@ -88,7 +85,7 @@ async function buyPlan(planId) {
 
         if (data?.success) {
             alert(data.message || 'اشتراک با موفقیت فعال شد.');
-            window.location.href = '/';
+            window.location.href = '/index.html';
         } else {
             alert(data?.message || 'خرید ناموفق بود.');
         }
@@ -96,4 +93,22 @@ async function buyPlan(planId) {
         console.error('خطا در خرید اشتراک:', err);
         alert('خطا در ارتباط با سرور');
     }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const submitEmailBtn = document.getElementById('submit-email-btn');
+    if (submitEmailBtn) {
+        submitEmailBtn.addEventListener('click', handleSubscribe);
+    }
+
+    const purchaseBtn = document.getElementById('subscribe-purchase-btn');
+    if (purchaseBtn) {
+        purchaseBtn.addEventListener('click', () => {
+            openPurchaseModal(); 
+        });
+    }
+});
+
+function openPurchaseModal() {
+    alert("لطفاً پلن مورد نظر خود را انتخاب کنید.");
 }
