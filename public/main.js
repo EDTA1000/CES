@@ -118,3 +118,10 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+    const purchaseBtn = document.getElementById('subscribe-purchase-btn');
+    if (purchaseBtn) {
+        purchaseBtn.addEventListener('click', () => {
+            window.location.href = '/subscribe.html';
+        });
+    }
+});
