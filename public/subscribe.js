@@ -95,20 +95,4 @@ async function buyPlan(planId) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const submitEmailBtn = document.getElementById('submit-email-btn');
-    if (submitEmailBtn) {
-        submitEmailBtn.addEventListener('click', handleSubscribe);
-    }
 
-    const purchaseBtn = document.getElementById('subscribe-purchase-btn');
-    if (purchaseBtn) {
-        purchaseBtn.addEventListener('click', () => {
-            openPurchaseModal(); 
-        });
-    }
-});
-
-function openPurchaseModal() {
-    alert("لطفاً پلن مورد نظر خود را انتخاب کنید.");
-}

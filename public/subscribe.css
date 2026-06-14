@@ -129,8 +129,16 @@ html, body {
 .btn-success:hover {
     background: #27ae60;
 }
-
-/* === Plan cards === */
+.plans-box {
+    display: flex;      
+    flex-wrap: wrap;     
+    gap: 20px;           
+    justify-content: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    margin-top: 20px;
+}
 .plan-card {
     width: 100%;
     max-width: 420px;
@@ -155,7 +163,7 @@ html, body {
     font-size: 0.95rem;
 }
 
-/* Plans container */
+
 #subscription-plans {
     width: 100%;
     display: flex;
@@ -163,19 +171,18 @@ html, body {
     align-items: center;
 }
 
-/* Hidden utility */
+
 .hidden {
     display: none !important;
 }
 
-/* Content container */
+
 #content-container {
     width: 100%;
     max-width: 520px;
     min-height: 1px;
 }
 
-/* === Responsive === */
 @media (max-width: 768px) {
     #subscribe-animation-gif {
         width: 45vw;   /* روی موبایل کمی بزرگ‌تر برای دیده شدن */
