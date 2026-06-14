@@ -1,131 +1,218 @@
-body {
-    font-family: 'Tahoma', sans-serif;
-    background-color: #f4f7f6;
-    color: #333;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 20px;
+/* === Base === */
+* {
     box-sizing: border-box;
-    position: relative;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    font-family: Tahoma, Arial, sans-serif;
+    background: #f4f7f6;
+    color: #333;
     overflow-x: hidden;
 }
 
+/* === GIF top-left fixed === */
 #subscribe-animation-gif {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    width: 33vw;
-    max-width: 500px;
-    min-width: 220px;
+    width: 33vw;          /* همیشه یک‌سوم عرض صفحه */
+    max-width: 33vw;      /* جلوگیری از بزرگ‌تر شدن */
     height: auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    z-index: 10;
+    display: block;
+    z-index: 1000;
+    border-radius: 0 0 10px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    object-fit: contain;
 }
 
-@media (max-width: 768px) {
-    #subscribe-animation-gif {
-        width: 45vw;
-        min-width: 180px;
-    }
+/* === Main page container === */
+.subscribe-page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    position: relative;
+    z-index: 1;
 }
 
-h3 {
-    font-size: 2.2em;
+/* چون GIF در بالا-چپ قرار دارد، کمی فاصله عمودی می‌دهیم */
+.subscribe-page h1 {
+    margin-top: 220px;
+    margin-bottom: 24px;
+    font-size: 2rem;
     color: #2c3e50;
-    margin-top: 230px; 
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
-input[type="email"] {
-    width: 80%;
-    max-width: 400px;
-    padding: 15px 20px;
-    margin-bottom: 20px;
+/* === Shared boxes === */
+.email-box,
+.plans-box {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 24px 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.email-box h2,
+.plans-box h2 {
+    margin: 0 0 6px 0;
+    font-size: 1.4rem;
+    color: #34495e;
+    text-align: center;
+}
+
+/* === Input === */
+#email {
+    width: 100%;
+    max-width: 420px;
+    padding: 14px 16px;
     border: 2px solid #bdc3c7;
-    border-radius: 8px;
-    font-size: 1.1em;
-    box-sizing: border-box;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-input[type="email"]:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+    border-radius: 10px;
+    font-size: 1rem;
     outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    direction: rtl;
+    text-align: right;
 }
 
-button {
-    background-color: #2ecc71;
-    color: white;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-bottom: 15px;
-    width: 80%;
+#email:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.18);
+}
+
+/* === Buttons === */
+.btn {
+    width: 100%;
     max-width: 300px;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    color: #fff;
 }
 
-button:hover {
-    background-color: #27ae60;
+.btn:hover {
     transform: translateY(-2px);
 }
 
-button:active {
+.btn:active {
     transform: translateY(0);
 }
 
-#subscription-plans {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
+.btn-primary {
+    background: #3498db;
 }
 
-#subscription-plans button {
-    background-color: #3498db;
-    width: 80%;
-    max-width: 300px;
-    margin-top: 10px;
+.btn-primary:hover {
+    background: #2980b9;
 }
 
-.email-box, .plans-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
+.btn-success {
+    background: #2ecc71;
 }
 
+.btn-success:hover {
+    background: #27ae60;
+}
+
+/* === Plan cards === */
 .plan-card {
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin: 10px;
-    border-radius: 10px;
-    width: 80%;
-    max-width: 300px;
+    width: 100%;
+    max-width: 420px;
+    background: #fafafa;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    padding: 18px 16px;
     text-align: center;
-    background: white;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
 }
 
-.btn {
-    padding: 15px 30px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.2em;
-    width: 80%;
+.plan-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.15rem;
+    color: #2c3e50;
 }
 
-.btn-primary { background-color: #3498db; color: white; }
-.btn-success { background-color: #2ecc71; color: white; }
-#subscription-plans button:hover {
-    background-color: #2980b9;
+.plan-card p {
+    margin: 0 0 12px 0;
+    color: #7f8c8d;
+    font-size: 0.95rem;
 }
-.hidden { display: none !important; }
 
+/* Plans container */
+#subscription-plans {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
+/* Hidden utility */
+.hidden {
+    display: none !important;
+}
 
+/* Content container */
+#content-container {
+    width: 100%;
+    max-width: 520px;
+    min-height: 1px;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+    #subscribe-animation-gif {
+        width: 45vw;   /* روی موبایل کمی بزرگ‌تر برای دیده شدن */
+        max-width: 45vw;
+    }
+
+    .subscribe-page h1 {
+        margin-top: 180px;
+        font-size: 1.7rem;
+    }
+
+    .email-box,
+    .plans-box {
+        padding: 20px 14px;
+    }
+
+    .btn {
+        max-width: 100%;
+    }
+
+    .plan-card {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    #subscribe-animation-gif {
+        width: 52vw;
+        max-width: 52vw;
+    }
+
+    .subscribe-page h1 {
+        margin-top: 150px;
+        font-size: 1.5rem;
+    }
+
+    #email {
+        max-width: 100%;
+    }
+}
