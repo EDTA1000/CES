@@ -84,6 +84,10 @@ app.get("/api/site-data", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+app.get('/create-piece', (req, res) => {
+    res.sendFile(__dirname + '/public/create-piece.html'); 
+});
+
 app.post('/api/check-user-status', async (req, res) => {
   const { email } = req.body;
   

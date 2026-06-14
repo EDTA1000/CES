@@ -1,98 +1,95 @@
 
-const API = {
-    async request(endpoint, method = 'POST', data = {}) {
-        try {
-            const response = await fetch(`/api/${endpoint}`, {
-                method,
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    setupAdminNavigation();
+
+
+    setupCommentSystem();
+
+    setupAdminKeyboardShortcut();
+});
+
+function setupAdminNavigation() {
+    const btnCreate = document.getElementById('goto-create-piece');
+    const btnSim = document.getElementById('goto-simulation');
+
+    if (btnCreate) {
+        btnCreate.addEventListener('click', () => {
+            window.location.href = '/create-piece';
+        });
+    }
+
+    if (btnSim) {
+        btnSim.addEventListener('click', () => {
+            window.location.href = '/simulation-page';
+        });
+    }
+}
+
+function setupCommentSystem() {
+    const submitBtn = document.getElementById('submit-comment-btn');
+    const commentText = document.getElementById('comment-text');
+
+    if (submitBtn) {
+        submitBtn.addEventListener('click', async () => {
+            const content = commentText.value.trim();
+            if (!content) return alert("لطفاً نظر خود را بنویسید.");
+
+            try {
+                const response = await fetch('/api/comments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: "guest@user.com", content }) 
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert("نظر شما ثبت شد.");
+                    commentText.value = '';
+                    loadComments(); 
+                }
+            } catch (err) {
+                console.error("خطا در ارسال نظر:", err);
+            }
+        });
+    }
+    loadComments();
+}
+
+async function loadComments() {
+    const list = document.getElementById('comments-list');
+    if (!list) return;
+
+    try {
+        const res = await fetch('/api/comments');
+        const comments = await res.json();
+        list.innerHTML = comments.map(c => `<div class="comment">${c.content}</div>`).join('');
+    } catch (err) {
+        console.error("خطا در دریافت نظرات:", err);
+    }
+}
+
+
+function setupAdminKeyboardShortcut() {
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.shiftKey && event.key === 'B') {
+            event.preventDefault();
+            const password = prompt("لطفاً رمز عبور ادمین را وارد کنید:");
+            if (!password) return;
+            fetch('/verify-admin', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'خطا در ارتباط با سرور');
-            return result;
-        } catch (error) {
-            console.error(`API Error on ${endpoint}:`, error);
-            throw error;
+                body: JSON.stringify({ password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("خوش آمدید ادمین.");
+                } else {
+                    alert("رمز عبور اشتباه است.");
+                }
+            })
+            .catch(err => console.error("خطا در احراز هویت:", err));
         }
-    }
-};
-
-const UI = {
-    showMessage(text, type = 'info') {
-        const msgBox = document.getElementById('message-container') || document.body;
-        const div = document.createElement('div');
-        div.className = `message-${type}`;
-        div.textContent = text; // جلوگیری از XSS
-        msgBox.appendChild(div);
-        setTimeout(() => div.remove(), 5000);
-    },
-
-    updateVisibility(isLoggedIn, isAdmin) {
-        const loginSection = document.getElementById('login-section');
-        const adminSection = document.getElementById('admin-section');
-        if (loginSection) loginSection.style.display = isLoggedIn ? 'none' : 'block';
-        if (adminSection) adminSection.style.display = isAdmin ? 'block' : 'none';
-    }
-};
-
-const App = {
-    init() {
-        this.bindEvents();
-        this.fetchSiteData();
-    },
-
-    bindEvents() {
-        document.getElementById('subscribe-form')?.addEventListener('submit', (e) => this.handleSubscribe(e));
-        
-        document.getElementById('login-form')?.addEventListener('submit', (e) => this.handleLogin(e));
-
-        document.getElementById('create-part-btn')?.addEventListener('click', () => this.handleCreatePart());
-    },
-
-    async handleSubscribe(e) {
-        e.preventDefault();
-        const email = e.target.email.value;
-        try {
-            const result = await API.request('subscribe', 'POST', { email });
-            UI.showMessage(result.message, "green");
-            this.fetchSiteData();
-        } catch (err) {
-            UI.showMessage(err.message, "red");
-        }
-    },
-
-    async handleLogin(e) {
-        e.preventDefault();
-        const { username, password } = e.target;
-        try {
-            const result = await API.request('login', 'POST', { 
-                username: username.value, 
-                password: password.value 
-            });
-            alert("ورود موفقیت‌آمیز بود.");
-            UI.updateVisibility(true, result.isAdmin);
-        } catch (err) {
-            alert(err.message);
-        }
-    },
-
-    async handleCreatePart() {
-        try {
-            const result = await API.request('admin/create-part', 'POST', { data: 'sample' });
-            alert("قطعه با موفقیت ایجاد شد!");
-        } catch (err) {
-            alert(err.message);
-        }
-    },
-
-    async fetchSiteData() {
-        try {
-            const data = await API.request('stats', 'GET');
-            console.log("آمار سایت:", data);
-        } catch (error) {
-            console.error("خطا در دریافت آمار:", error);
-        }
-    }
-};
-
-document.addEventListener('DOMContentLoaded', () => App.init());
+    });
+}
