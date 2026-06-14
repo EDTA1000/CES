@@ -13,7 +13,7 @@ async function handleComment() {
     });
     if (res.ok) {
         input.value = '';
-        loadComments(); 
+        if (typeof loadComments === 'function') loadComments();
     }
 }
 
@@ -29,9 +29,7 @@ async function handleSubscribe() {
     try {
         const response = await fetch('/api/subscribe', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
         });
 
@@ -43,9 +41,14 @@ async function handleSubscribe() {
         }
 
         currentUser.email = email;
-        document.getElementById('email-form-container').style.display = 'none';
-        document.getElementById('subscription-plans').style.display = 'block';
-        document.getElementById('content-container').innerHTML = '<p>ایمیل با موفقیت ثبت شد. لطفاً یکی از اشتراک‌ها را انتخاب کنید.</p>';
+        
+        document.getElementById('email-form-container').classList.add('hidden');
+        document.getElementById('subscription-plans').classList.remove('hidden');
+        
+        const contentContainer = document.getElementById('content-container');
+        if (contentContainer) {
+            contentContainer.innerHTML = '<p>ایمیل با موفقیت ثبت شد. لطفاً یکی از اشتراک‌ها را انتخاب کنید.</p>';
+        }
     } catch (err) {
         console.error('خطا در ثبت ایمیل:', err);
         alert('خطا در ارتباط با سرور');
@@ -67,13 +70,8 @@ async function buyPlan(planId) {
     try {
         const response = await fetch('/api/purchase', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: currentUser.email,
-                planId
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email, planId })
         });
 
         const data = await response.json().catch(() => null);
@@ -94,5 +92,3 @@ async function buyPlan(planId) {
         alert('خطا در ارتباط با سرور');
     }
 }
-
-
