@@ -48,6 +48,9 @@ body {
     display: flex;
     justify-content: center;
 }
+#goto-create-piece, #goto-simulation {
+    display: none; 
+}
 
 .btn {
     padding: 12px 25px;

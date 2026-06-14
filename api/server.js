@@ -7,7 +7,6 @@ import { createClient } from '@supabase/supabase-js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config();
-
 const app = express();
 
 app.use(cors());
@@ -22,8 +21,6 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
-const express = require('express');
-const app = express();
 
 app.use(express.json());
 
@@ -84,10 +81,6 @@ app.get("/api/site-data", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-app.get('/create-piece', (req, res) => {
-    res.sendFile(__dirname + '/public/create-piece.html'); 
-});
-
 app.post('/api/check-user-status', async (req, res) => {
   const { email } = req.body;
   
