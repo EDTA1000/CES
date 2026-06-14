@@ -1,45 +1,58 @@
 const subscribeModule = {
-    async handleSubscription(email) {
-        if (!this.isValidEmail(email)) {
-            alert('ایمیل وارد شده معتبر نیست.');
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/subscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) throw new Error(result.message || 'خطا در ثبت نام');
-            
-            alert('اشتراک شما با موفقیت انجام شد.');
-        } catch (error) {
-            console.error('Subscription error:', error);
-            alert('مشکلی در سرور رخ داده است. لطفاً دوباره تلاش کنید.');
-        }
-    },
-
     isValidEmail(email) {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
     },
+    async sendSubscriptionRequest(endpoint, payload) {
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-    initOfferContainer(containerId, email) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
+             const result = await response.json();
+               if (response.ok) {
+                    let msg = result.message;
+                    if (result.expiry) {
+                    msg += `\nاین اشتراک تا تاریخ ${result.expiry} معتبر است.`;
+               }
+             alert(msg);
+            }
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'خطا در ارتباط با سرور');
+            
+            alert(result.message || 'عملیات با موفقیت انجام شد.');
+        } catch (error) {
+            console.error('Subscription error:', error);
+            alert('خطا: ' + error.message);
+        }
+    },
+    initPurchaseBtn() {
+        const btn = document.getElementById('subscribe-purchase-btn');
+        if (!btn) return;
 
-        container.innerHTML = '';
-        
-        const btn = document.createElement('button');
-        btn.textContent = 'پذیرش پیشنهاد ویژه';
-        btn.addEventListener('click', () => this.handleSubscription(email));
-        
-        container.appendChild(btn);
+        btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            btn.innerText = 'در حال پردازش...';
+            await this.sendSubscriptionRequest('/api/purchase', { plan: 'premium' });
+            btn.disabled = false;
+            btn.innerText = 'خرید اشتراک';
+        });
+    },
+
+    initFreeTrialBtn(email) {
+        const btn = document.getElementById('free-trial-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', async () => {
+            await this.sendSubscriptionRequest('/api/subscribe-trial', { email, plan: '7-day-trial' });
+        });
     }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    subscribeModule.initPurchaseBtn();
+});
 
 window.subscribeModule = subscribeModule;

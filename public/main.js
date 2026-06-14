@@ -90,26 +90,31 @@ async function loadComments() {
 
     try {
         const res = await fetch('/api/comments');
-        const data = await res.json().catch(() => null);
-
-        if (!res.ok) {
-            throw new Error(data?.message || 'خطا در دریافت نظرات');
-        }
-
-        if (!Array.isArray(data) || data.length === 0) {
-            list.innerHTML = '<p>هنوز نظری ثبت نشده است.</p>';
-            return;
-        }
-
-        list.innerHTML = data
-            .map(c => {
-                const content = escapeHtml(c.content || '');
-                return `<div class="comment">${content}</div>`;
-            })
-            .join('');
+        const data = await res.json();
+        
+        list.innerHTML = data.map(c => `
+            <div class="comment-item" id="comment-${c.id}">
+                <p>${escapeHtml(c.content)}</p>
+                <div class="comment-actions">
+                    <button onclick="voteComment(${c.id}, 'up')">👍</button>
+                    <button onclick="voteComment(${c.id}, 'down')">👎</button>
+                    <span>${c.votes || 0}</span>
+                </div>
+            </div>
+        `).join('');
     } catch (err) {
-        console.error('خطا در بارگذاری نظرات:', err);
-        list.innerHTML = '<p>در حال حاضر امکان بارگذاری نظرات نیست.</p>';
+        console.error("خطا در بارگذاری نظرات:", err);
+    }
+}
+
+async function voteComment(id, type) {
+    const res = await fetch('/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type })
+    });
+    if (res.ok) {
+        loadComments(); 
     }
 }
 

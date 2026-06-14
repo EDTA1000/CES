@@ -42,7 +42,42 @@ body {
     font-size: 12px;
     margin-right: 5px;
 }
+.comment-item {
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.comment-actions button {
+    background: none;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.comment-actions button:hover {
+    background-color: #e0e0e0;
+}
+
+.comment-actions span {
+    font-weight: bold;
+    color: #333;
+    margin-left: 5px;
+}
 #subscription-button-area {
     margin: 40px 0;
     display: flex;

@@ -9,8 +9,12 @@
 <body>
     <img id="subscribe-animation-gif" src="https://raw.githubusercontent.com/EDTA1000/CES/master/public/picture/subscribe-animation.gif" alt="subscribe-animation">
     <h3>ثبت‌نام اشتراک</h3>
-    <input type="email" id="email" placeholder="ایمیل خود را وارد کنید">
-    <button onclick="handleSubscribe()">تایید</button>
+      <div id="email-form-container">
+          <input type="email" id="email" placeholder="ایمیل خود را وارد کنید">
+          <button onclick="handleSubscribe()">تایید</button>
+      </div>
+      <div id="content-container"></div>
+
 
     <div id="subscription-plans" style="display:none;">
         <button onclick="buyPlan('1month')">یک ماهه</button>

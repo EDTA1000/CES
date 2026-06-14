@@ -21,9 +21,50 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+const db = {
+    users: [] 
+};
 
+app.post('/api/subscribe-trial', (req, res) => {
+    const { email } = req.body;
+
+    if (!email) return res.status(400).json({ message: 'ایمیل الزامی است.' });
+
+    const startDate = new Date();
+    const expiryDate = new Date();
+    expiryDate.setDate(startDate.getDate() + 7);
+
+    db.users.push({
+        email,
+        plan: 'trial',
+        startDate: startDate.toISOString(),
+        expiryDate: expiryDate.toISOString()
+    });
+
+    console.log(`اشتراک ۷ روزه برای ${email} فعال شد. انقضا: ${expiryDate.toDateString()}`);
+
+    res.status(200).json({ 
+        message: 'اشتراک ۷ روزه رایگان فعال شد!',
+        expiry: expiryDate.toLocaleDateString('fa-IR') // تاریخ به شمسی برای نمایش
+    });
+});
 app.use(express.json());
+    app.post('/api/purchase', (req, res) => {
+    const { plan } = req.body;
+    console.log(`درخواست خرید پلن: ${plan}`);
+    
+    res.status(200).json({ message: 'به درگاه پرداخت منتقل می‌شوید.' });
+});
 
+app.post('/api/subscribe-trial', (req, res) => {
+    const { email, plan } = req.body;
+    
+    if (!email) return res.status(400).json({ message: 'ایمیل الزامی است.' });
+
+    console.log(`فعال‌سازی اشتراک رایگان برای: ${email}`);
+    
+    res.status(200).json({ message: 'اشتراک ۷ روزه رایگان برای شما فعال شد!' });
+});
 app.post('/api/subscribe', async (req, res) => {
     const { email } = req.body;
 
