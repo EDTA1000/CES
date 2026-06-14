@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function hideAdminButtons() {
     const btnCreate = document.getElementById('goto-create-piece');
     const btnSim = document.getElementById('goto-simulation');
-
     if (btnCreate) btnCreate.style.display = 'none';
     if (btnSim) btnSim.style.display = 'none';
 }
@@ -16,7 +15,6 @@ function hideAdminButtons() {
 function showAdminButtons() {
     const btnCreate = document.getElementById('goto-create-piece');
     const btnSim = document.getElementById('goto-simulation');
-
     if (btnCreate) btnCreate.style.display = 'block';
     if (btnSim) btnSim.style.display = 'block';
 }
@@ -30,7 +28,6 @@ function setupAdminNavigation() {
             window.location.href = '/create-piece';
         });
     }
-
     if (btnSim) {
         btnSim.addEventListener('click', () => {
             window.location.href = '/simulation-page';
@@ -39,53 +36,17 @@ function setupAdminNavigation() {
 }
 
 function setupCommentSystem() {
-    const submitBtn = document.getElementById('submit-comment-btn');
-    const commentText = document.getElementById('comment-text');
+    const submitBtn = document.querySelector('button[onclick*="handleComment"]');
+    const commentText = document.getElementById('comment-input-global');
 
     if (submitBtn) {
-        submitBtn.addEventListener('click', async () => {
-            const content = commentText?.value?.trim();
 
-            if (!content) {
-                alert('لطفاً نظر خود را بنویسید.');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/comments', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: 'guest@user.com',
-                        content
-                    })
-                });
-
-                const data = await response.json().catch(() => null);
-
-                if (!response.ok) {
-                    throw new Error(data?.message || 'خطا در ثبت نظر');
-                }
-
-                if (data?.success) {
-                    alert('نظر شما ثبت شد.');
-                    if (commentText) commentText.value = '';
-                    loadComments();
-                } else {
-                    alert(data?.message || 'ثبت نظر ناموفق بود.');
-                }
-            } catch (err) {
-                console.error('خطا در ارسال نظر:', err);
-                alert('خطا در ارسال نظر به سرور');
-            }
-        });
     }
-
     loadComments();
 }
 
 async function loadComments() {
-    const list = document.getElementById('comments-list');
+    const list = document.getElementById('comments-list-global');
     if (!list) return;
 
     try {
@@ -94,6 +55,10 @@ async function loadComments() {
         
         list.innerHTML = data.map(c => `
             <div class="comment-item" id="comment-${c.id}">
+                <div class="user-info">
+                    <img src="${c.user?.avatarUrl || 'default-avatar.png'}" width="30" alt="avatar">
+                    <strong>${c.user?.name || 'کاربر'}</strong>
+                </div>
                 <p>${escapeHtml(c.content)}</p>
                 <div class="comment-actions">
                     <button onclick="voteComment(${c.id}, 'up')">👍</button>
@@ -108,10 +73,13 @@ async function loadComments() {
 }
 
 async function voteComment(id, type) {
+    // استفاده از currentUser.email از فایل subscribe.js
+    const email = (typeof currentUser !== 'undefined') ? currentUser.email : null;
+    
     const res = await fetch('/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, type })
+        body: JSON.stringify({ id, type, email })
     });
     if (res.ok) {
         loadComments(); 
@@ -122,7 +90,6 @@ function setupAdminKeyboardShortcut() {
     document.addEventListener('keydown', async (event) => {
         if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'b') {
             event.preventDefault();
-
             const password = prompt('لطفاً رمز عبور ادمین را وارد کنید:');
             if (!password) return;
 
@@ -132,23 +99,15 @@ function setupAdminKeyboardShortcut() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
                 });
-
                 const data = await response.json().catch(() => null);
-
-                if (!response.ok) {
-                    alert(data?.message || 'رمز عبور اشتباه است.');
-                    return;
-                }
-
-                if (data?.success) {
+                if (response.ok && data?.success) {
                     alert('خوش آمدید ادمین.');
                     showAdminButtons();
                 } else {
                     alert(data?.message || 'احراز هویت ناموفق بود.');
                 }
             } catch (err) {
-                console.error('خطا در احراز هویت:', err);
-                alert('خطا در ارتباط با سرور');
+                console.error('خطا:', err);
             }
         }
     });

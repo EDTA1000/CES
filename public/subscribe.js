@@ -1,58 +1,116 @@
-const subscribeModule = {
-    isValidEmail(email) {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-    },
-    async sendSubscriptionRequest(endpoint, payload) {
-        try {
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-             const result = await response.json();
-               if (response.ok) {
-                    let msg = result.message;
-                    if (result.expiry) {
-                    msg += `\nاین اشتراک تا تاریخ ${result.expiry} معتبر است.`;
-               }
-             alert(msg);
-            }
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'خطا در ارتباط با سرور');
-            
-            alert(result.message || 'عملیات با موفقیت انجام شد.');
-        } catch (error) {
-            console.error('Subscription error:', error);
-            alert('خطا: ' + error.message);
-        }
-    },
-    initPurchaseBtn() {
-        const btn = document.getElementById('subscribe-purchase-btn');
-        if (!btn) return;
-
-        btn.addEventListener('click', async () => {
-            btn.disabled = true;
-            btn.innerText = 'در حال پردازش...';
-            await this.sendSubscriptionRequest('/api/purchase', { plan: 'premium' });
-            btn.disabled = false;
-            btn.innerText = 'خرید اشتراک';
-        });
-    },
-
-    initFreeTrialBtn(email) {
-        const btn = document.getElementById('free-trial-btn');
-        if (!btn) return;
-
-        btn.addEventListener('click', async () => {
-            await this.sendSubscriptionRequest('/api/subscribe-trial', { email, plan: '7-day-trial' });
-        });
-    }
+let currentUser = {
+    id: null,
+    name: null,
+    email: null,
+    avatarUrl: null
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    subscribeModule.initPurchaseBtn();
-});
+async function handleSubscribe() {
+    const emailInput = document.getElementById('email');
+    const email = emailInput.value.trim();
+    
+    if (!email) {
+        alert('لطفاً ایمیل خود را وارد کنید.');
+        return;
+    }
 
-window.subscribeModule = subscribeModule;
+    const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email }),
+    });
+
+    if (response.ok) {
+        document.getElementById('email-form-container').style.display = 'none';
+        document.getElementById('subscription-plans').style.display = 'block';
+        document.getElementById('content-container').innerHTML = '<p>اشتراک خود را انتخاب کنید:</p>';
+        const data = await response.json();
+        currentUser = data.user;
+    } else {
+        alert('خطا در ثبت ایمیل. لطفاً دوباره تلاش کنید.');
+    }
+}
+
+async function buyPlan(planId) {
+    if (!currentUser.email) {
+        alert('ابتدا باید ایمیل خود را ثبت کنید.');
+        return;
+    }
+
+    const response = await fetch('/api/purchase', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ planId: planId, email: currentUser.email }),
+    });
+
+    if (response.ok) {
+        alert('خرید با موفقیت انجام شد.');
+        window.location.href = 'subscribe.html';
+    } else {
+        alert('خطا در پردازش خرید.');
+    }
+}
+
+async function handleVote(postId, type) {
+    if (!currentUser.email) {
+        alert('فقط کاربران ثبت‌نام شده مجاز به رأی‌دهی هستند.');
+        return;
+    }
+
+    const response = await fetch('/api/vote', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId: postId, type: type, email: currentUser.email }),
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        document.getElementById(`like-count-${postId}`).textContent = data.likes;
+        document.getElementById(`dislike-count-${postId}`).textContent = data.dislikes;
+    } else {
+        alert('خطا در ثبت رأی.');
+    }
+}
+
+async function handleComment(postId) {
+    if (!currentUser.email) {
+        alert('لطفاً برای ثبت نظر ایمیل خود را ثبت کنید.');
+        return;
+    }
+
+    const commentInput = document.getElementById(`comment-input-${postId}`);
+    const text = commentInput.value.trim();
+
+    if (!text) return;
+
+    const response = await fetch('/api/comment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId: postId, text: text, user: currentUser }),
+    });
+
+    if (response.ok) {
+        const newComment = await response.json();
+        const commentsList = document.getElementById(`comments-list-${postId}`);
+        const commentDiv = document.createElement('div');
+        commentDiv.innerHTML = `
+            <div class="user-info">
+                <img src="${newComment.user.avatarUrl}" alt="avatar">
+                <span>${newComment.user.name}</span>
+            </div>
+            <p>${newComment.text}</p>
+        `;
+        commentsList.prepend(commentDiv);
+        commentInput.value = '';
+    } else {
+        alert('خطا در ثبت نظر.');
+    }
+}
