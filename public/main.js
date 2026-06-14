@@ -3,6 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCommentSystem();
     setupAdminKeyboardShortcut();
     hideAdminButtons();
+    const purchaseBtn = document.getElementById('subscribe-purchase-btn');
+    if (purchaseBtn) {
+        purchaseBtn.addEventListener('click', () => {
+            window.location.href = '/subscribe.html';
+        });
+    }
 });
 
 function hideAdminButtons() {
@@ -118,10 +124,5 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-    const purchaseBtn = document.getElementById('subscribe-purchase-btn');
-    if (purchaseBtn) {
-        purchaseBtn.addEventListener('click', () => {
-            window.location.href = '/subscribe.html';
-        });
-    }
-});
+
+
