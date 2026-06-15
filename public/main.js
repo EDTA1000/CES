@@ -2,10 +2,19 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAdminNavigation();
     setupCommentSystem();
     hideAdminButtons();
-    const purchaseBtn = document.getElementById('subscribe-submit-btn');
+    const purchaseBtn = document.getElementById('subscribe-purchase-btn');
     if (purchaseBtn) {
         purchaseBtn.addEventListener('click', () => {
             window.location.href = '/subscribe.html';
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const goToSubscribeBtn = document.getElementById('go-to-subscribe-btn'); 
+    
+    if (goToSubscribeBtn) {
+        goToSubscribeBtn.addEventListener('click', () => {
+            window.location.href = 'subscribe.html'; 
         });
     }
 });

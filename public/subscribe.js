@@ -17,15 +17,20 @@ async function handleComment() {
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
-    const subscribeBtn = document.getElementById('subscribe-purchase-btn');
+    const subscribeBtn = document.getElementById('subscribe-submit-btn'); 
+    
     if (subscribeBtn) {
         subscribeBtn.addEventListener('click', handleSubscribe);
     }
 });
 
-
 async function handleSubscribe() {
     const emailInput = document.getElementById('email');
+    if (!emailInput) {
+        alert('فیلد ایمیل پیدا نشد.');
+        return;
+    }
+
     const email = emailInput.value.trim();
 
     if (!email) {
@@ -48,19 +53,19 @@ async function handleSubscribe() {
         }
 
         currentUser.email = email;
-        
-        document.getElementById('email-form-container').classList.add('hidden');
-        document.getElementById('subscription-plans').classList.remove('hidden');
-        
-        const contentContainer = document.getElementById('content-container');
-        if (contentContainer) {
-            contentContainer.innerHTML = '<p>ایمیل با موفقیت ثبت شد. لطفاً یکی از اشتراک‌ها را انتخاب کنید.</p>';
-        }
+
+        const emailForm = document.getElementById('email-form-container');
+        const plans = document.getElementById('subscription-plans');
+
+        if (emailForm) emailForm.classList.add('hidden');
+        if (plans) plans.classList.remove('hidden');
+
     } catch (err) {
         console.error('خطا در ثبت ایمیل:', err);
         alert('خطا در ارتباط با سرور');
     }
 }
+
 async function updateUIBasedOnStatus(email) {
   try {
     const response = await fetch('/api/check-user-status', {
