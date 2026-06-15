@@ -267,7 +267,7 @@ app.post('/api/admin-login', (req, res) => {
     if (!password) {
         return res.status(400).json({ success: false, message: 'رمز وارد نشده' });
     }
-    if (password === process.env.ADMIN_password) {
+    if (password === process.env.ADMIN_PASSWORD) {
         return res.json({ success: true });
     }
     return res.status(401).json({ success: false, message: 'رمز اشتباه است' });

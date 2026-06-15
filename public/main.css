@@ -83,10 +83,7 @@ body {
     display: flex;
     justify-content: center;
 }
-.goto-create-piece {
-    display: none; 
-}
-.goto-simulation {
+.hiden {
     display: none; 
 }
 
