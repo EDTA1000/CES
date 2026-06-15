@@ -33,27 +33,31 @@ app.get('/', (req, res) => {
 });
 
 
-app.post('/api/subscribe', async (req, res) => {
-  try {
-    const { email } = req.body;
+pp.post('/api/subscribe', async (req, res) => {
+  const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ message: 'ایمیل الزامی است.' });
+  try {
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('email, expiryDate')
+      .eq('email', email)
+      .single();
+    if (existingUser) {
+      return res.status(200).json({ success: true, message: 'خوش آمدید!' });
     }
 
     const { error } = await supabase
-      .from('subscribers')
-      .insert([{ email }]);
+      .from('users')
+      .insert([{ 
+        email: email, 
+        is_subscribed: false 
+      }]);
 
-    if (error) {
-      console.error('Subscribe error:', error);
-      return res.status(500).json({ message: 'خطای داخلی سرور.' });
-    }
+    if (error) throw error;
 
-    return res.status(200).json({ message: 'ایمیل با موفقیت ثبت شد.' });
-  } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ message: 'خطای داخلی سرور.' });
+    res.status(200).json({ success: true, message: 'ثبت‌نام اولیه انجام شد.' });
+  } catch (err) {
+    res.status(500).json({ message: 'خطای سرور' });
   }
 });
 

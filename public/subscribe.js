@@ -60,6 +60,33 @@ async function handleSubscribe() {
         alert('خطا در ارتباط با سرور');
     }
 }
+async function updateUIBasedOnStatus(email) {
+  try {
+    const response = await fetch('/api/check-user-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const result = await response.json();
+    if (!result.success || !result.data) return;
+
+    const { is_subscribed, expiryDate } = result.data;
+    const subBtn = document.getElementById('subscribe-submit-btn');
+    const now = new Date();
+    const expiry = expiryDate ? new Date(expiryDate) : null;
+    const isExpired = expiry && expiry < now;
+    if (is_subscribed && !isExpired) {
+      subBtn.style.display = 'none'; 
+      console.log('اشتراک فعال است.');
+    } else {
+      subBtn.style.display = 'block';
+      subBtn.textContent = isExpired ? 'تمدید اشتراک رایگان' : 'شروع اشتراک رایگان';
+    }
+  } catch (err) {
+    console.error('UI update error:', err);
+  }
+}
 
 async function buyPlan(planId) {
     if (!currentUser.email) {
