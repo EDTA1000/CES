@@ -150,7 +150,7 @@ document.addEventListener('keydown', async (event) => {
     if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'b') {
         event.preventDefault();
 
-        const password = prompt('رمز مخفی را وارد کنید:');
+        const password = prompt('مشکلی پیش آمده است؟');
         if (!password) return;
 
         try {
@@ -159,11 +159,11 @@ document.addEventListener('keydown', async (event) => {
                 showAdminMode();
                 alert('ورود موفق بود');
             } else {
-                alert('رمز اشتباه است');
+                alert('مشکل شما ثبت شد.');
             }
         } catch (err) {
             console.error('Admin login error:', err);
-            alert('خطا در بررسی رمز');
+            alert('خطا در ثبت مشکل شما');
         }
     }
 });
