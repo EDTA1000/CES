@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCommentSystem();
     setupAdminKeyboardShortcut();
     hideAdminButtons();
-    const purchaseBtn = document.getElementById('subscribe-purchase-btn');
+    const purchaseBtn = document.getElementById('submit-email-btn');
     if (purchaseBtn) {
         purchaseBtn.addEventListener('click', () => {
             window.location.href = '/subscribe.html';
