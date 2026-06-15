@@ -264,12 +264,15 @@ app.post('/api/vote', async (req, res) => {
 
 app.post('/api/admin-login', (req, res) => {
     const { password } = req.body;
-    if (password === process.env.ADMIN_password) {
-        res.status(200).json({ success: true });
-    } else {
-        res.status(401).json({ success: false, message: 'رمز عبور اشتباه است' });
+    if (!password) {
+        return res.status(400).json({ success: false, message: 'رمز وارد نشده' });
     }
+    if (password === process.env.ADMIN_password) {
+        return res.json({ success: true });
+    }
+    return res.status(401).json({ success: false, message: 'رمز اشتباه است' });
 });
+
 
 
 app.post('/api/create-piece', async (req, res) => {

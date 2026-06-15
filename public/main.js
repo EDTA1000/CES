@@ -79,7 +79,6 @@ async function loadComments() {
 }
 
 async function voteComment(id, type) {
-    // استفاده از currentUser.email از فایل subscribe.js
     const email = (typeof currentUser !== 'undefined') ? currentUser.email : null;
     
     const res = await fetch('/vote', {
@@ -91,33 +90,72 @@ async function voteComment(id, type) {
         loadComments(); 
     }
 }
+function showAdminMode() {
+    const subscribeBtn = document.getElementById('subscribe-purchase-btn');
+    const simulationBtn = document.getElementById('simulation-btn');
+    const createPieceBtn = document.getElementById('create-piece-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    if (subscribeBtn) subscribeBtn.style.display = 'none';
+    if (simulationBtn) simulationBtn.style.display = 'inline-block';
+    if (createPieceBtn) createPieceBtn.style.display = 'inline-block';
+    if (logoutBtn) logoutBtn.style.display = 'inline-block';
+
+    localStorage.setItem('adminMode', 'true');
+}
+
+function hideAdminMode() {
+    const subscribeBtn = document.getElementById('subscribe-purchase-btn');
+    const simulationBtn = document.getElementById('simulation-btn');
+    const createPieceBtn = document.getElementById('create-piece-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    if (subscribeBtn) subscribeBtn.style.display = 'inline-block';
+    if (simulationBtn) simulationBtn.style.display = 'none';
+    if (createPieceBtn) createPieceBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+
+    localStorage.removeItem('adminMode');
+}
+document.addEventListener('click', (event) => {
+    if (event.target && event.target.id === 'logout-btn') {
+        hideAdminMode();
+        alert('از اشتراک خارج شدید');
+    }
+});
+
+async function verifyAdminPassword(password) {
+    const res = await fetch('/api/admin-login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+    });
+
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.success === true;
+}
+
 document.addEventListener('keydown', async (event) => {
-    if (event.ctrlKey && event.shiftKey && event.key === 'B') {
+    if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'b') {
         event.preventDefault();
-        const password = prompt('لطفاً رمز مدیریت را وارد کنید:');
-        
+
+        const password = prompt('رمز مخفی را وارد کنید:');
         if (!password) return;
 
         try {
-            const response = await fetch('/api/admin-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            });
-
-            if (response.ok) {
-                document.getElementById('simulation-btn').style.display = 'block';
-                document.getElementById('create-piece-btn').style.display = 'block';
-                
-                document.getElementById('subscribe-purchase-btn').style.display = 'none';
-                document.getElementById('logout-btn').style.display = 'block';
-                
-                alert('دسترسی ادمین فعال شد');
+            const ok = await verifyAdminPassword(password);
+            if (ok) {
+                showAdminMode();
+                alert('ورود موفق بود');
             } else {
-                alert('رمز نادرست است');
+                alert('رمز اشتباه است');
             }
         } catch (err) {
-            console.error('Error:', err);
+            console.error('Admin login error:', err);
+            alert('خطا در بررسی رمز');
         }
     }
 });

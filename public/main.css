@@ -83,7 +83,10 @@ body {
     display: flex;
     justify-content: center;
 }
-#goto-create-piece, #goto-simulation {
+.goto-create-piece {
+    display: none; 
+}
+.goto-simulation {
     display: none; 
 }
 
