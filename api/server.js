@@ -33,7 +33,7 @@ app.get('/', (req, res) => {
 });
 
 
-pp.post('/api/subscribe', async (req, res) => {
+app.post('/api/subscribe', async (req, res) => {
   const { email } = req.body;
 
   try {
