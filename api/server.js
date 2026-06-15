@@ -41,7 +41,7 @@ app.post('/api/subscribe', async (req, res) => {
       .from('users')
       .select('email, expiryDate')
       .eq('email', email)
-      .single();
+      .maybeSingle();
     if (existingUser) {
       return res.status(200).json({ success: true, message: 'خوش آمدید!' });
     }
@@ -119,8 +119,6 @@ app.post('/api/subscribe-trial', async (req, res) => {
     return res.status(500).json({ success: false, message: 'خطای داخلی سرور.' });
   }
 });
-
-// API: activate free trial (legacy/compatibility)
 app.post('/api/activate-free-trial', async (req, res) => {
   try {
     const { email } = req.body;
@@ -140,7 +138,6 @@ app.post('/api/activate-free-trial', async (req, res) => {
   }
 });
 
-// API: decline free trial (legacy/compatibility)
 app.post('/api/decline-free-trial', async (req, res) => {
   try {
     const { email } = req.body;
@@ -160,7 +157,6 @@ app.post('/api/decline-free-trial', async (req, res) => {
   }
 });
 
-// API: check user status
 app.post('/api/check-user-status', async (req, res) => {
   try {
     const { email } = req.body;
@@ -190,7 +186,6 @@ app.post('/api/check-user-status', async (req, res) => {
   }
 });
 
-// API: comments
 app.get('/api/comments', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -266,16 +261,17 @@ app.post('/api/vote', async (req, res) => {
   }
 });
 
-// API: admin verify
-app.post('/api/admin-verify', async (req, res) => {
-  const { code } = req.body;
-  if (code === process.env.ADMIN_SECRET) {
-    return res.json({ authorized: true });
-  }
-  return res.status(401).json({ authorized: false, message: 'کد نامعتبر' });
+
+app.post('/api/admin-login', (req, res) => {
+    const { password } = req.body;
+    if (password === process.env.ADMIN_password) {
+        res.status(200).json({ success: true });
+    } else {
+        res.status(401).json({ success: false, message: 'رمز عبور اشتباه است' });
+    }
 });
 
-// API: create piece
+
 app.post('/api/create-piece', async (req, res) => {
   try {
     const { title, content, author } = req.body;
@@ -290,12 +286,10 @@ app.post('/api/create-piece', async (req, res) => {
   }
 });
 
-// API: simulation (if exists in original logic)
 app.post('/api/run-simulation', (req, res) => {
     res.status(200).json({ success: true, result: "Simulation finished" });
 });
 
-// API: site data (general info)
 app.get('/api/site-data', async (req, res) => {
     const { data, error } = await supabase.from('site_settings').select('*');
     res.json(data || {});

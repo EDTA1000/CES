@@ -91,33 +91,36 @@ async function voteComment(id, type) {
         loadComments(); 
     }
 }
+document.addEventListener('keydown', async (event) => {
+    if (event.ctrlKey && event.shiftKey && event.key === 'B') {
+        event.preventDefault();
+        const password = prompt('لطفاً رمز مدیریت را وارد کنید:');
+        
+        if (!password) return;
 
-function setupAdminKeyboardShortcut() {
-    document.addEventListener('keydown', async (event) => {
-        if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'b') {
-            event.preventDefault();
-            const password = prompt('لطفاً رمز عبور ادمین را وارد کنید:');
-            if (!password) return;
+        try {
+            const response = await fetch('/api/admin-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
 
-            try {
-                const response = await fetch('/verify-admin', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
-                });
-                const data = await response.json().catch(() => null);
-                if (response.ok && data?.success) {
-                    alert('خوش آمدید ادمین.');
-                    showAdminButtons();
-                } else {
-                    alert(data?.message || 'احراز هویت ناموفق بود.');
-                }
-            } catch (err) {
-                console.error('خطا:', err);
+            if (response.ok) {
+                document.getElementById('simulation-btn').style.display = 'block';
+                document.getElementById('create-piece-btn').style.display = 'block';
+                
+                document.getElementById('subscribe-purchase-btn').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'block';
+                
+                alert('دسترسی ادمین فعال شد');
+            } else {
+                alert('رمز نادرست است');
             }
+        } catch (err) {
+            console.error('Error:', err);
         }
-    });
-}
+    }
+});
 
 function escapeHtml(text) {
     const div = document.createElement('div');
