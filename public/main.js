@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     setupAdminNavigation();
     setupCommentSystem();
-    setupAdminKeyboardShortcut();
     hideAdminButtons();
     const purchaseBtn = document.getElementById('subscribe-submit-btn');
     if (purchaseBtn) {

@@ -17,11 +17,12 @@ async function handleComment() {
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('subscribe-submit-btn');
-    if (btn) {
-        btn.addEventListener('click', handleSubscribe);
+    const subscribeBtn = document.getElementById('subscribe-purchase-btn');
+    if (subscribeBtn) {
+        subscribeBtn.addEventListener('click', handleSubscribe);
     }
 });
+
 
 async function handleSubscribe() {
     const emailInput = document.getElementById('email');
