@@ -16,6 +16,12 @@ async function handleComment() {
         if (typeof loadComments === 'function') loadComments();
     }
 }
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('subscribe-submit-btn');
+    if (btn) {
+        btn.addEventListener('click', handleSubscribe);
+    }
+});
 
 async function handleSubscribe() {
     const emailInput = document.getElementById('email');
