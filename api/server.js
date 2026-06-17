@@ -213,22 +213,30 @@ app.post('/api/check-user-status', async (req, res) => {
 });
 
 app.get('/api/comments', async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+        const { data: comments, error: commentError } = await supabase
+            .from('comments')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (commentError) throw commentError;
+        const { data: votes, error: voteError } = await supabase
+            .from('votes')
+            .select('comment_id, vote_type');
+        if (voteError) throw voteError;
+        const commentsWithVotes = comments.map(comment => {
+            const commentVotes = votes.filter(v => v.comment_id === comment.id);
+            return {
+                ...comment,
+                likes: commentVotes.filter(v => v.vote_type === 'like').length,
+                dislikes: commentVotes.filter(v => v.vote_type === 'dislike').length
+            };
+        });
 
-    if (error) {
-      console.error('Error fetching comments:', error);
-      return res.status(500).json({ error: 'خطا در دریافت نظرات' });
+        res.json(commentsWithVotes);
+    } catch (error) {
+        console.error("خطا در واکشی نظرات:", error);
+        res.status(500).json({ error: "خطا در دریافت اطلاعات" });
     }
-
-    return res.json(data || []);
-  } catch (err) {
-    console.error('Unexpected error in /api/comments GET:', err);
-    return res.status(500).json({ error: 'خطا در دریافت نظرات' });
-  }
 });
 
 app.post('/api/comments', async (req, res) => {

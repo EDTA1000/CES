@@ -89,10 +89,7 @@ async function loadComments() {
   		  <button class="like-btn" data-comment-id="${c.id}">👍 ${c.likes || 0}</button>
   		  <button class="dislike-btn" data-comment-id="${c.id}">👎 ${c.dislikes || 0}</button>
 		</div>
-
-    </div>
-        </div>
-                </div>
+           </div>
             `;
         }).join('');
     } catch (err) {
