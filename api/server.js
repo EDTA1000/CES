@@ -138,42 +138,50 @@ app.post('/api/subscribe-trial', async (req, res) => {
   }
 });
 app.post('/api/activate-free-trial', async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'ایمیل الزامی است.' });
-    }
-
-    await supabase.from('users').upsert([
-      { email: email, is_subscribed: true, plan: 'trial' }
-    ]);
-
-    return res.json({ success: true });
-  } catch (err) {
-    console.error('Error activating free trial:', err);
-    return res.status(500).json({ error: 'خطا در فعال‌سازی' });
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required' });
   }
-});
+
+  try {
+    const startDate = new Date();
+    const expiryDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const { error } = await supabase
+      .from('users')
+      .upsert([
+        { email: email, is_subscribed: true, plan: 'free', startDate: startDate.toISOString(), expiryDate: expiryDate.toISOString() }
+      ]);
+
+    if (error) throw error;
+    res.status(200).json({ success: true, message: 'Free trial activated' });
+  } catch (error) {
+    console.error('Error activating free trial:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+})
+
 
 app.post('/api/decline-free-trial', async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'ایمیل الزامی است.' });
-    }
-
-      await supabase.from('users').upsert([
-         { email: email, is_subscribed: true, startDate: new Date().toISOString(), expiryDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() } 
-        ]);
-
-    return res.json({ success: true });
-  } catch (err) {
-    console.error('Error declining free trial:', err);
-    return res.status(500).json({ error: 'خطا در ثبت' });
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required' });
   }
-});
+
+  try {
+    const { error } = await supabase
+      .from('users')
+      .upsert([
+        { email: email, is_subscribed: false, startDate: null, expiryDate: null }
+      ]);
+
+    if (error) throw error;
+    res.status(200).json({ success: true, message: 'Free trial declined' });
+  } catch (error) {
+    console.error('Error declining free trial:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+})
 
 app.post('/api/check-user-status', async (req, res) => {
   try {
