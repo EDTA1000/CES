@@ -86,9 +86,14 @@ async function loadComments() {
                     </div>
                     <p>${c.content}</p>
                      <div class="comment-actions">
-                <button onclick="voteComment('${c.id}', 'like')">👍</button>
-                <button onclick="voteComment('${c.id}', 'dislike')">👎</button>
-            </div>
+                         <button onclick="voteComment('${c.id}', 'like')">👍</button>
+                         <button onclick="voteComment('${c.id}', 'dislike')">👎</button>
+                     </div>
+                     <div class="vote-actions">
+                        <button onclick="voteComment('${c.id}', 'like')">👍 ${c.likes || 0}</button>
+                        <button onclick="voteComment('${c.id}', 'dislike')">👎 ${c.dislikes || 0}</button>
+                     </div>
+    </div>
         </div>
                 </div>
             `;
@@ -97,17 +102,24 @@ async function loadComments() {
         console.error("خطا در بارگذاری نظرات:", err);
     } 
 } 
-async function voteComment(id, type) {
-    const email = (typeof currentUser !== 'undefined') ? currentUser.email : null;
-    
+async function voteComment(commentId, type) {
     const res = await fetch('/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, type, email })
+        body: JSON.stringify({ commentId, type })
     });
-    if (res.ok) {
+    
+    const data = await res.json();
+    if (data.success) {
         loadComments(); 
+    } else {
+        alert(data.message || "شما قبلاً رأی داده‌اید!");
     }
+}
+function replyTo(username) {
+    const input = document.getElementById('comment-input-global');
+    input.value = `@${username} `;
+    input.focus();
 }
 function showAdminMode() {
     const subscribeBtn = document.getElementById('subscribe-purchase-btn');
