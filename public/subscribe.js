@@ -97,7 +97,9 @@ async function updateUIBasedOnStatus(email) {
     if (isSubscribed && purchaseBtn) {
         purchaseBtn.style.display = 'none';
     }
-  }
+ } catch (error) {
+    console.error("خطا رخ داد:", error);
+}
 
    document.addEventListener('DOMContentLoaded', () => {
       updateUIBasedOnLoginStatus();

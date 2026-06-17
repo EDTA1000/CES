@@ -139,49 +139,48 @@ function showReplyForm(commentId) {
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
-function replyTo(username) {
+async function replyTo(username) {
     const input = document.getElementById('comment-input-global');
     input.value = `@${username} `;
     input.focus();
 }
 async function submitReply(commentId) {
-    const content = document.getElementById(`reply-text-${commentId}`).value;
-    const userEmail = localStorage.getItem('userEmail'); 
+    const replyTextElement = document.getElementById(`reply-text-${commentId}`);
+    const content = replyTextElement ? replyTextElement.value : "";
+    const userEmail = localStorage.getItem('userEmail');
 
     if (!userEmail) {
         alert("لطفاً ابتدا وارد شوید.");
         return;
     }
 
-    const response = await fetch('/api/replies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            comment_id: commentId,
-            content: content,
-            user_email: userEmail 
-        })
-    });
+    if (!content.trim()) {
+        alert("متن پاسخ نمی‌تواند خالی باشد.");
+        return;
+    }
 
-    if (response.ok) {
-       loadComments();
-   }
-}
-    const response = await fetch('/api/replies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            comment_id: commentId,
-            content: content,
-            user_email: localStorage.getItem('userEmail')
-        })
-    });
+    try {
+        const response = await fetch('/api/replies', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                comment_id: commentId,
+                content: content,
+                user_email: userEmail
+            })
+        });
 
-    if (response.ok) {
-        alert("پاسخ شما ثبت شد!");
-        loadComments(); 
-    } else {
-        alert("خطا در ثبت پاسخ");
+        if (response.ok) {
+            alert("پاسخ شما ثبت شد!");
+            replyTextElement.value = "";
+            hideReplyForm(commentId);
+            loadComments();
+        } else {
+            alert("خطا در ثبت پاسخ. لطفاً دوباره تلاش کنید.");
+        }
+    } catch (error) {
+        console.error("Error submitting reply:", error);
+        alert("خطای ارتباط با سرور");
     }
 }
 
