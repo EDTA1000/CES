@@ -86,13 +86,18 @@ async function loadComments() {
             
             const commentReplies = allReplies.filter(r => r.comment_id === c.id);
 
-            const repliesHTML = commentReplies.map(r => `
-                <div class="reply-item" style="margin-left: 20px; border-left: 2px solid #ccc; padding-left: 10px;">
-                    <img src="${r.avatar_url || 'default-avatar.png'}" width="20" alt="avatar">
-                    <strong>${r.username || 'کاربر'}</strong>
-                    <p>${r.content}</p>
-                </div>
-            `).join('');
+	const repliesHTML = commentReplies.map(r => {
+	    const replyName = r.user_email ? r.user_email.split('@')[0] : 'کاربر';
+	    const replyAvatar = r.user_email ? getAvatarUrl(r.user_email) : 'default-avatar.png';
+	
+	    return `
+	        <div class="reply-item" style="margin-left: 20px; border-left: 2px solid #ccc; padding-left: 10px;">
+	            <img src="${replyAvatar}" width="30" alt="avatar">
+	            <strong>${replyName}</strong>
+	            <p>${r.content}</p>
+	        </div>
+  	  `;
+	}).join('');
 
             return `
                 <div class="comment-item">
