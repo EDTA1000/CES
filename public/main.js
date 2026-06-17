@@ -2,6 +2,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAdminNavigation();
     setupCommentSystem();
     hideAdminButtons();
+    const currentUserEmail = localStorage.getItem('userEmail');
+    const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
+    if (currentUserEmail) {
+       updateUIForLoggedInUser(currentUserEmail, isSubscribed);
+    }
     const purchaseBtn = document.getElementById('subscribe-purchase-btn');
     if (purchaseBtn) {
         purchaseBtn.addEventListener('click', () => {
@@ -58,7 +63,10 @@ function setupCommentSystem() {
     }
     loadComments();
 }
-
+function getAvatarUrl(email) {
+    const hash = btoa(email.toLowerCase().trim()); 
+    return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+}
 async function loadComments() {
     const list = document.getElementById('comments-list-global');
     if (!list) return;
@@ -66,26 +74,20 @@ async function loadComments() {
     try {
         const res = await fetch('/api/comments');
         const data = await res.json();
-        
-        list.innerHTML = data.map(c => `
-            <div class="comment-item" id="comment-${c.id}">
-                <div class="user-info">
-                    <img src="${c.user?.avatarUrl || 'default-avatar.png'}" width="30" alt="avatar">
-                    <strong>${c.user?.name || 'کاربر'}</strong>
-                </div>
-                <p>${escapeHtml(c.content)}</p>
-                <div class="comment-actions">
-                    <button onclick="voteComment(${c.id}, 'up')">👍</button>
-                    <button onclick="voteComment(${c.id}, 'down')">👎</button>
-                    <span>${c.votes || 0}</span>
-                </div>
+list.innerHTML = data.map(c => {
+    const displayName = c.email.split('@')[0]; 
+    const avatar = getAvatarUrl(c.email); 
+    
+    return `
+        <div class="comment-item">
+            <div class="user-info">
+                <img src="${avatar}" width="30" alt="avatar">
+                <strong>${displayName}</strong>
             </div>
-        `).join('');
-    } catch (err) {
-        console.error("خطا در بارگذاری نظرات:", err);
-    }
-}
-
+            <p>${c.content}</p>
+        </div>
+    `;
+}).join('');
 async function voteComment(id, type) {
     const email = (typeof currentUser !== 'undefined') ? currentUser.email : null;
     
@@ -110,6 +112,25 @@ function showAdminMode() {
     if (logoutBtn) logoutBtn.style.display = 'inline-block';
 
     localStorage.setItem('adminMode', 'true');
+}
+function updateUIForLoggedInUser(email, isSubscribed) {
+    const authContainer = document.getElementById('email-form-container');
+    const plansContainer = document.getElementById('subscription-plans');
+    const dashboardActions = document.getElementById('dashboard-actions'); 
+
+    if (isSubscribed) {
+        if(authContainer) authContainer.style.display = 'none';
+        if(plansContainer) plansContainer.style.display = 'none';
+        dashboardActions.innerHTML = `
+            <button onclick="window.location.href='/simulation-page.html'">ورود به صفحه شبیه‌سازی</button>
+            <button onclick="handleLogout()">خروج از اشتراک</button>
+        `;
+    }
+}
+
+function handleLogout() {
+    localStorage.clear(); 
+    window.location.reload(); 
 }
 
 function hideAdminMode() {

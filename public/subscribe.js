@@ -120,6 +120,8 @@ async function buyPlan(planId) {
 
     if (planId === '7days-free') {
         alert('اشتراک رایگان با موفقیت فعال شد.');
+        localStorage.setItem('userEmail', responseData.email);
+        localStorage.setItem('isSubscribed', responseData.is_subscribed);
         window.location.href = '/index.html';
         return;
     }
@@ -140,6 +142,8 @@ async function buyPlan(planId) {
 
         if (data?.success) {
             alert(data.message || 'اشتراک با موفقیت فعال شد.');
+              localStorage.setItem('userEmail', responseData.email);
+              localStorage.setItem('isSubscribed', responseData.is_subscribed);
             window.location.href = '/index.html';
         } else {
             alert(data?.message || 'خرید ناموفق بود.');
