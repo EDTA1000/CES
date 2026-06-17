@@ -70,14 +70,30 @@ function getAvatarUrl(email) {
 async function loadComments() {
     const list = document.getElementById('comments-list-global');
     if (!list) return;
+    
     try {
-        const res = await fetch('/api/comments');
-        const data = await res.json();
+        const [commentsRes, repliesRes] = await Promise.all([
+            fetch('/api/comments'),
+            fetch('/api/replies')
+        ]);
         
-        list.innerHTML = data.map(c => {
+        const comments = await commentsRes.json();
+        const allReplies = await repliesRes.json();
+        
+        list.innerHTML = comments.map(c => {
             const displayName = c.email.split('@')[0]; 
             const avatar = getAvatarUrl(c.email); 
             
+            const commentReplies = allReplies.filter(r => r.comment_id === c.id);
+
+            const repliesHTML = commentReplies.map(r => `
+                <div class="reply-item" style="margin-left: 20px; border-left: 2px solid #ccc; padding-left: 10px;">
+                    <img src="${r.avatar_url || 'default-avatar.png'}" width="20" alt="avatar">
+                    <strong>${r.username || 'کاربر'}</strong>
+                    <p>${r.content}</p>
+                </div>
+            `).join('');
+
             return `
                 <div class="comment-item">
                     <div class="user-info">
@@ -85,31 +101,28 @@ async function loadComments() {
                         <strong>${displayName}</strong>
                     </div>
                     <p>${c.content}</p>
-		<div class="vote-actions">
-  		  <button class="like-btn" data-comment-id="${c.id}">👍 ${c.likes || 0}</button>
-  		  <button class="dislike-btn" data-comment-id="${c.id}">👎 ${c.dislikes || 0}</button>
-		</div>
-        <div id="reply-form-${c.id}" class="reply-container">
-            <textarea id="reply-text-${c.id}"></textarea>
-            <button onclick="submitReply('${c.id}')">ارسال پاسخ</button>
-        </div>
-      </div>
+                    <div class="vote-actions">
+                        <button class="like-btn" data-comment-id="${c.id}">👍 ${c.likes || 0}</button>
+                        <button class="dislike-btn" data-comment-id="${c.id}">👎 ${c.dislikes || 0}</button>
+                    </div>
+                    
+                    <div class="replies-section">
+                        ${repliesHTML}
+                    </div>
+
+                    <div id="reply-form-${c.id}" class="reply-container">
+                        <textarea id="reply-text-${c.id}"></textarea>
+                        <button onclick="submitReply('${c.id}')">ارسال پاسخ</button>
+                    </div>
+                </div>
             `;
         }).join('');
-const commentReplies = allReplies.filter(r => r.comment_id === c.id);
-let repliesHTML = commentReplies.map(r => `
-    <div class="reply-item">
-        <img src="${r.users.avatar_url}" width="30">
-        <span>${r.users.username}</span>
-        <p>${r.content}</p>
-    </div>
-`).join('');
-commentHTML += `<div class="replies-section">${repliesHTML}</div>`;
 
     } catch (err) {
         console.error("خطا در بارگذاری نظرات:", err);
     } 
-} 
+}
+
 async function voteComment(commentId, type) {
     const userEmail = localStorage.getItem('userEmail');
     if (!userEmail) {
