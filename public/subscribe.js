@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function handleSubscribe() {
     const emailInput = document.getElementById('email');
     if (!emailInput) {
-        alert('فیلد ایمیل پیدا نشد.');
+        alert('لطفاً ایمیل خود را وارد کنید.');
         return;
     }
 
@@ -39,16 +39,29 @@ async function handleSubscribe() {
     }
 
     try {
-        const response = await fetch('/api/subscribe', {
+        const statusResponse = await fetch('/api/check-user-status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
         });
 
-        const data = await response.json().catch(() => null);
+        const statusData = await statusResponse.json().catch(() => null);
 
-        if (!response.ok) {
-            alert(data?.message || 'خطا در ثبت ایمیل');
+        if (!statusResponse.ok) {
+            alert(statusData?.message || 'خطا در بررسی وضعیت کاربر');
+            return;
+        }
+
+        const activateResponse = await fetch('/api/activate-free-trial', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const activateData = await activateResponse.json().catch(() => null);
+
+        if (!activateResponse.ok) {
+            alert(activateData?.message || 'خطا در فعال‌سازی اشتراک');
             return;
         }
 
@@ -65,6 +78,7 @@ async function handleSubscribe() {
         alert('خطا در ارتباط با سرور');
     }
 }
+
 
 async function updateUIBasedOnStatus(email) {
   try {
