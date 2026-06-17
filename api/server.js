@@ -274,17 +274,28 @@ app.post('/api/replies', async (req, res) => {
 });
 
 app.post('/api/vote', async (req, res) => {
-  try {
     const { comment_id, user_email, vote_type } = req.body;
-    const { data, error } = await supabase
-      .from('votes')
-      .insert([{ comment_id, user_email, vote_type }]);
 
-    if (error) return res.status(500).json({ success: false, message: 'خطا در ثبت رای' });
-    return res.status(200).json({ success: true });
-  } catch (err) {
-    return res.status(500).json({ success: false, message: 'خطای سرور' });
-  }
+    const { data: existingVote, error: checkError } = await supabase
+        .from('votes')
+        .select('*')
+        .eq('comment_id', comment_id)
+        .eq('user_email', user_email)
+        .single();
+
+    if (existingVote) {
+        return res.status(400).json({ success: false, message: "شما قبلاً برای این نظر رای داده‌اید!" });
+    }
+
+    const { error: insertError } = await supabase
+        .from('votes')
+        .insert([{ comment_id, user_email, vote_type }]);
+
+    if (insertError) {
+        return res.status(500).json({ success: false, message: "خطا در ثبت رای" });
+    }
+
+    res.json({ success: true, message: "رای شما ثبت شد" });
 });
 
 
