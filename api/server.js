@@ -164,9 +164,9 @@ app.post('/api/decline-free-trial', async (req, res) => {
       return res.status(400).json({ success: false, message: 'ایمیل الزامی است.' });
     }
 
-    await supabase.from('users').upsert([
-      { email: email, is_subscribed: false }
-    ]);
+      await supabase.from('users').upsert([
+         { email: email, is_subscribed: true, startDate: new Date().toISOString(), expiryDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() } 
+        ]);
 
     return res.json({ success: true });
   } catch (err) {
