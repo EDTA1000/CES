@@ -304,11 +304,11 @@ document.addEventListener('keydown', async (event) => {
 });
 
 function redirectToSimulation() {
-    window.location.href = '/simulation-page';
+    window.location.href = '/simulation-page.html';
 }
 
 function redirectToCreatePiece() {
-    window.location.href = '/create-piece';
+    window.location.href = '/create-piece.html';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
