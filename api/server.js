@@ -211,6 +211,21 @@ app.post('/api/check-user-status', async (req, res) => {
     return res.status(500).json({ success: false, error: 'خطا در دیتابیس' });
   }
 });
+app.get('/api/replies', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('replies')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        res.json(data);
+    } catch (error) {
+        console.error('خطا در دریافت پاسخ‌ها:', error);
+        res.status(500).json({ error: 'خطا در دریافت پاسخ‌ها' });
+    }
+});
 
 app.get('/api/comments', async (req, res) => {
     try {
@@ -268,18 +283,44 @@ app.post('/api/comments', async (req, res) => {
   }
 });
 app.post('/api/replies', async (req, res) => {
-  try {
-    const { comment_id, email, content } = req.body;
-    const { data, error } = await supabase
-      .from('replies')
-      .insert([{ comment_id, email, content }]);
+    try {
+        const { comment_id, content, user_email } = req.body;
 
-    if (error) return res.status(500).json({ success: false, message: 'خطا در ثبت پاسخ' });
-    return res.status(200).json({ success: true, data });
-  } catch (err) {
-    return res.status(500).json({ success: false, message: 'خطای سرور' });
-  }
+        if (!comment_id || !content || !user_email) {
+            return res.status(400).json({ error: 'اطلاعات ناقص است' });
+        }
+
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('username, avatar_url, email')
+            .eq('email', user_email)
+            .single();
+
+        if (userError || !user) {
+            return res.status(404).json({ error: 'کاربر پیدا نشد' });
+        }
+
+        const { data, error } = await supabase
+            .from('replies')
+            .insert([{
+                comment_id,
+                content,
+                user_email,
+                username: user.username,
+                avatar_url: user.avatar_url
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json(data);
+    } catch (error) {
+        console.error('خطا در ثبت پاسخ:', error);
+        res.status(500).json({ error: 'خطا در ثبت پاسخ' });
+    }
 });
+
 
 app.post('/api/vote', async (req, res) => {
     const { comment_id, user_email, vote_type } = req.body;

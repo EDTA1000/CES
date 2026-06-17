@@ -96,6 +96,16 @@ async function loadComments() {
       </div>
             `;
         }).join('');
+const commentReplies = allReplies.filter(r => r.comment_id === c.id);
+let repliesHTML = commentReplies.map(r => `
+    <div class="reply-item">
+        <img src="${r.users.avatar_url}" width="30">
+        <span>${r.users.username}</span>
+        <p>${r.content}</p>
+    </div>
+`).join('');
+commentHTML += `<div class="replies-section">${repliesHTML}</div>`;
+
     } catch (err) {
         console.error("خطا در بارگذاری نظرات:", err);
     } 
@@ -136,7 +146,27 @@ function replyTo(username) {
 }
 async function submitReply(commentId) {
     const content = document.getElementById(`reply-text-${commentId}`).value;
-    
+    const userEmail = localStorage.getItem('userEmail'); 
+
+    if (!userEmail) {
+        alert("لطفاً ابتدا وارد شوید.");
+        return;
+    }
+
+    const response = await fetch('/api/replies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            comment_id: commentId,
+            content: content,
+            user_email: userEmail 
+        })
+    });
+
+    if (response.ok) {
+       loadComments();
+   }
+}
     const response = await fetch('/api/replies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
