@@ -85,14 +85,11 @@ async function loadComments() {
                         <strong>${displayName}</strong>
                     </div>
                     <p>${c.content}</p>
-                     <div class="comment-actions">
-                         <button onclick="voteComment('${c.id}', 'like')">👍</button>
-                         <button onclick="voteComment('${c.id}', 'dislike')">👎</button>
-                     </div>
-                     <div class="vote-actions">
-                        <button onclick="voteComment('${c.id}', 'like')">👍 ${c.likes || 0}</button>
-                        <button onclick="voteComment('${c.id}', 'dislike')">👎 ${c.dislikes || 0}</button>
-                     </div>
+		<div class="vote-actions">
+  		  <button class="like-btn" data-comment-id="${c.id}">👍 ${c.likes || 0}</button>
+  		  <button class="dislike-btn" data-comment-id="${c.id}">👎 ${c.dislikes || 0}</button>
+		</div>
+
     </div>
         </div>
                 </div>
@@ -103,19 +100,30 @@ async function loadComments() {
     } 
 } 
 async function voteComment(commentId, type) {
-    const res = await fetch('/vote', {
+    const userEmail = localStorage.getItem('userEmail');
+    if (!userEmail) {
+        alert('برای رأی دادن باید وارد شوید.');
+        return;
+    }
+
+    const res = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commentId, type })
+        body: JSON.stringify({
+            comment_id: commentId,
+            user_email: userEmail,
+            vote_type: type
+        })
     });
-    
+
     const data = await res.json();
     if (data.success) {
-        loadComments(); 
+        loadComments();
     } else {
-        alert(data.message || "شما قبلاً رأی داده‌اید!");
+        alert(data.message || 'شما قبلاً رأی داده‌اید!');
     }
 }
+
 function replyTo(username) {
     const input = document.getElementById('comment-input-global');
     input.value = `@${username} `;
@@ -187,6 +195,18 @@ async function verifyAdminPassword(password) {
     const data = await res.json();
     return data.success === true;
 }
+document.addEventListener('click', (e) => {
+    const likeBtn = e.target.closest('.like-btn');
+    const dislikeBtn = e.target.closest('.dislike-btn');
+
+    if (likeBtn) {
+        voteComment(likeBtn.dataset.commentId, 'like');
+    }
+
+    if (dislikeBtn) {
+        voteComment(dislikeBtn.dataset.commentId, 'dislike');
+    }
+});
 
 document.addEventListener('keydown', async (event) => {
     if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'b') {
