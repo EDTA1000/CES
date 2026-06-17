@@ -86,42 +86,42 @@ async function handleSubscribe() {
 }
 
 async function updateUIBasedOnStatus(email) {
-  try {
-    const response = await fetch('/api/check-user-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
     const purchaseBtn = document.getElementById('subscribe-submit-btn');
-    if (isSubscribed && purchaseBtn) {
-        purchaseBtn.style.display = 'none';
+    if (!purchaseBtn) return;
+
+    try {
+        const response = await fetch('/api/check-user-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        
+        const result = await response.json();
+        if (!result.success || !result.data) return;
+
+        const { is_subscribed, expiryDate } = result.data;
+        const now = new Date();
+        const expiry = expiryDate ? new Date(expiryDate) : null;
+        const isExpired = expiry && expiry < now;
+
+        if (is_subscribed && !isExpired) {
+            purchaseBtn.style.display = 'none';
+            console.log('اشتراک فعال است.');
+        } else {
+            purchaseBtn.style.display = 'block';
+            purchaseBtn.textContent = isExpired ? 'تمدید اشتراک' : 'شروع اشتراک';
+        }
+    } catch (err) {
+        console.error('خطا در به‌روزرسانی UI:', err);
     }
- } catch (error) {
-    console.error("خطا رخ داد:", error);
 }
 
-   document.addEventListener('DOMContentLoaded', () => {
-      updateUIBasedOnLoginStatus();
-      const result = await response.json();
-      if (!result.success || !result.data) return;
-     
-    const { is_subscribed, expiryDate } = result.data;
-    const subBtn = document.getElementById('subscribe-submit-btn');
-    const now = new Date();
-    const expiry = expiryDate ? new Date(expiryDate) : null;
-    const isExpired = expiry && expiry < now;
-    if (is_subscribed && !isExpired) {
-      subBtn.style.display = 'none'; 
-      console.log('اشتراک فعال است.');
-    } else {
-      subBtn.style.display = 'block';
-      subBtn.textContent = isExpired ? 'تمدید اشتراک رایگان' : 'شروع اشتراک رایگان';
+document.addEventListener('DOMContentLoaded', () => {
+    const userEmail = localStorage.getItem('userEmail');
+    if (userEmail) {
+        updateUIBasedOnStatus(userEmail);
     }
-  } catch (err) {
-    console.error('UI update error:', err);
-  }
-}
+});
 
 async function buyPlan(planId) {
     if (!currentUser.email) {
@@ -139,7 +139,6 @@ async function buyPlan(planId) {
         const data = await response.json(); 
 
         if (response.ok && data.success) {
-            // ۲. اصلاح: استفاده از data بجای responseData
             localStorage.setItem('userEmail', currentUser.email);
             localStorage.setItem('isSubscribed', 'true');
             
