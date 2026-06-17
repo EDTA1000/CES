@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
 async function handleSubscribe() {
     const emailInput = document.getElementById('email');
     if (!emailInput) {
-        alert('لطفاً ایمیل خود را وارد کنید.');
+        console.error('Element with id "email" not found.');
+        alert('خطای داخلی: فیلد ایمیل پیدا نشد.');
         return;
     }
 
@@ -45,27 +46,31 @@ async function handleSubscribe() {
             body: JSON.stringify({ email })
         });
 
-        const statusData = await statusResponse.json().catch(() => null);
-
         if (!statusResponse.ok) {
-            alert(statusData?.message || 'خطا در بررسی وضعیت کاربر');
+            const errorData = await statusResponse.json().catch(() => ({ message: 'خطای نامشخص سرور' }));
+            alert(errorData.message || `خطا در بررسی وضعیت کاربر (Status: ${statusResponse.status})`);
+            console.error('Error checking user status:', errorData);
             return;
         }
+
+        const statusData = await statusResponse.json();
+
 
         const activateResponse = await fetch('/api/activate-free-trial', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
+            body: JSON.stringify({ email }) 
         });
 
-        const activateData = await activateResponse.json().catch(() => null);
-
         if (!activateResponse.ok) {
-            alert(activateData?.message || 'خطا در فعال‌سازی اشتراک');
+            const errorData = await activateResponse.json().catch(() => ({ message: 'خطای نامشخص سرور' }));
+            alert(errorData.message || `خطا در فعال‌سازی اشتراک (Status: ${activateResponse.status})`);
+            console.error('Error activating free trial:', errorData);
             return;
         }
 
         currentUser.email = email;
+        alert('اشتراک رایگان شما با موفقیت فعال شد!');
 
         const emailForm = document.getElementById('email-form-container');
         const plans = document.getElementById('subscription-plans');
@@ -74,11 +79,10 @@ async function handleSubscribe() {
         if (plans) plans.classList.remove('hidden');
 
     } catch (err) {
-        console.error('خطا در ثبت ایمیل:', err);
-        alert('خطا در ارتباط با سرور');
+        console.error('خطای کلی در فرآیند ثبت نام:', err);
+        alert('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.');
     }
 }
-
 
 async function updateUIBasedOnStatus(email) {
   try {
