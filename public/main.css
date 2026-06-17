@@ -78,6 +78,48 @@ body {
     color: #333;
     margin-left: 5px;
 }
+
+.vote-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.vote-actions button {
+    background-color: #f4f4f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #555;
+}
+
+.vote-actions button:hover {
+    background-color: #e2e2e8;
+    border-color: #bbb;
+    color: #000;
+}
+
+.vote-actions button:last-child {
+    background-color: #eefbff;
+    border-color: #b3d7ff;
+    color: #0066cc;
+}
+
+.vote-actions button:last-child:hover {
+    background-color: #d1e7fd;
+}
+
+.vote-actions button:active {
+    transform: scale(0.95);
+}
+
 #subscription-button-area {
     margin: 40px 0;
     display: flex;

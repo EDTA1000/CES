@@ -89,7 +89,7 @@ async function loadComments() {
   		  <button class="like-btn" data-comment-id="${c.id}">👍 ${c.likes || 0}</button>
   		  <button class="dislike-btn" data-comment-id="${c.id}">👎 ${c.dislikes || 0}</button>
 		</div>
-        <div id="reply-form-${c.id}" class="reply-container" style="display:none;">
+        <div id="reply-form-${c.id}" class="reply-container">
             <textarea id="reply-text-${c.id}"></textarea>
             <button onclick="submitReply('${c.id}')">ارسال پاسخ</button>
         </div>
