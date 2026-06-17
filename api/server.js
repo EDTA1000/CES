@@ -34,29 +34,48 @@ app.get('/', (req, res) => {
 
 app.post('/api/subscribe', async (req, res) => {
   const { email } = req.body;
+  console.log('Received subscribe request with email:', email); 
+
+  if (!email) {
+    console.error('Email is missing in the request body.');
+    return res.status(400).json({ message: 'ایمیل الزامی است.' });
+  }
 
   try {
-    const { data: existingUser } = await supabase
+    const { data: existingUser, error: selectError } = await supabase
       .from('users')
       .select('email, expiryDate')
       .eq('email', email)
       .maybeSingle();
+
+    if (selectError) {
+      console.error('Supabase select error:', selectError);
+      throw selectError; 
+    }
+
     if (existingUser) {
+      console.log('User already exists:', existingUser.email);
       return res.status(200).json({ success: true, message: 'خوش آمدید!' });
     }
 
-    const { error } = await supabase
+    const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert([{ 
         email: email, 
         is_subscribed: false 
       }]);
 
-    if (error) throw error;
+    if (insertError) {
+      console.error('Supabase insert error:', insertError);
+      throw insertError; 
+    }
 
+    console.log('User inserted successfully:', newUser);
     res.status(200).json({ success: true, message: 'ثبت‌نام اولیه انجام شد.' });
+
   } catch (err) {
-    res.status(500).json({ message: 'خطای سرور' });
+    console.error('Error in /api/subscribe:', err);
+    res.status(500).json({ message: 'خطای سرور در ثبت اشتراک.' });
   }
 });
 
