@@ -89,7 +89,11 @@ async function loadComments() {
   		  <button class="like-btn" data-comment-id="${c.id}">👍 ${c.likes || 0}</button>
   		  <button class="dislike-btn" data-comment-id="${c.id}">👎 ${c.dislikes || 0}</button>
 		</div>
-           </div>
+        <div id="reply-form-${c.id}" class="reply-container" style="display:none;">
+            <textarea id="reply-text-${c.id}"></textarea>
+            <button onclick="submitReply('${c.id}')">ارسال پاسخ</button>
+        </div>
+      </div>
             `;
         }).join('');
     } catch (err) {
@@ -120,12 +124,37 @@ async function voteComment(commentId, type) {
         alert(data.message || 'شما قبلاً رأی داده‌اید!');
     }
 }
+function showReplyForm(commentId) {
+    const form = document.getElementById(`reply-form-${commentId}`);
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
 
 function replyTo(username) {
     const input = document.getElementById('comment-input-global');
     input.value = `@${username} `;
     input.focus();
 }
+async function submitReply(commentId) {
+    const content = document.getElementById(`reply-text-${commentId}`).value;
+    
+    const response = await fetch('/api/replies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            comment_id: commentId,
+            content: content,
+            user_email: localStorage.getItem('userEmail')
+        })
+    });
+
+    if (response.ok) {
+        alert("پاسخ شما ثبت شد!");
+        loadComments(); 
+    } else {
+        alert("خطا در ثبت پاسخ");
+    }
+}
+
 function showAdminMode() {
     const subscribeBtn = document.getElementById('subscribe-purchase-btn');
     const simulationBtn = document.getElementById('simulation-btn');
