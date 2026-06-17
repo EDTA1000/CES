@@ -92,10 +92,18 @@ async function updateUIBasedOnStatus(email) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
+    const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
+    const purchaseBtn = document.getElementById('subscribe-submit-btn');
+    if (isSubscribed && purchaseBtn) {
+        purchaseBtn.style.display = 'none';
+    }
+  }
 
-    const result = await response.json();
-    if (!result.success || !result.data) return;
-
+   document.addEventListener('DOMContentLoaded', () => {
+      updateUIBasedOnLoginStatus();
+      const result = await response.json();
+      if (!result.success || !result.data) return;
+     
     const { is_subscribed, expiryDate } = result.data;
     const subBtn = document.getElementById('subscribe-submit-btn');
     const now = new Date();

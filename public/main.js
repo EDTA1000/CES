@@ -85,6 +85,11 @@ async function loadComments() {
                         <strong>${displayName}</strong>
                     </div>
                     <p>${c.content}</p>
+                     <div class="comment-actions">
+                <button onclick="voteComment('${c.id}', 'like')">👍</button>
+                <button onclick="voteComment('${c.id}', 'dislike')">👎</button>
+            </div>
+        </div>
                 </div>
             `;
         }).join('');
