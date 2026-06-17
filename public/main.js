@@ -70,24 +70,28 @@ function getAvatarUrl(email) {
 async function loadComments() {
     const list = document.getElementById('comments-list-global');
     if (!list) return;
-
     try {
         const res = await fetch('/api/comments');
         const data = await res.json();
-list.innerHTML = data.map(c => {
-    const displayName = c.email.split('@')[0]; 
-    const avatar = getAvatarUrl(c.email); 
-    
-    return `
-        <div class="comment-item">
-            <div class="user-info">
-                <img src="${avatar}" width="30" alt="avatar">
-                <strong>${displayName}</strong>
-            </div>
-            <p>${c.content}</p>
-        </div>
-    `;
-}).join('');
+        
+        list.innerHTML = data.map(c => {
+            const displayName = c.email.split('@')[0]; 
+            const avatar = getAvatarUrl(c.email); 
+            
+            return `
+                <div class="comment-item">
+                    <div class="user-info">
+                        <img src="${avatar}" width="30" alt="avatar">
+                        <strong>${displayName}</strong>
+                    </div>
+                    <p>${c.content}</p>
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error("خطا در بارگذاری نظرات:", err);
+    } 
+} 
 async function voteComment(id, type) {
     const email = (typeof currentUser !== 'undefined') ? currentUser.email : null;
     

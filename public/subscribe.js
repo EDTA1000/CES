@@ -1,5 +1,6 @@
-let currentUser = { email: null };
-
+let currentUser = { 
+    email: localStorage.getItem('userEmail') || null 
+};
 async function handleComment() {
     const input = document.getElementById('comment-input-global');
     const content = input.value.trim();
@@ -118,14 +119,6 @@ async function buyPlan(planId) {
         return;
     }
 
-    if (planId === '7days-free') {
-        alert('اشتراک رایگان با موفقیت فعال شد.');
-        localStorage.setItem('userEmail', responseData.email);
-        localStorage.setItem('isSubscribed', responseData.is_subscribed);
-        window.location.href = '/index.html';
-        return;
-    }
-
     try {
         const response = await fetch('/api/purchase', {
             method: 'POST',
@@ -133,23 +126,19 @@ async function buyPlan(planId) {
             body: JSON.stringify({ email: currentUser.email, planId })
         });
 
-        const data = await response.json().catch(() => null);
+        const data = await response.json(); 
 
-        if (!response.ok) {
-            alert(data?.message || 'خطا در خرید اشتراک');
-            return;
-        }
-
-        if (data?.success) {
-            alert(data.message || 'اشتراک با موفقیت فعال شد.');
-              localStorage.setItem('userEmail', responseData.email);
-              localStorage.setItem('isSubscribed', responseData.is_subscribed);
+        if (response.ok && data.success) {
+            // ۲. اصلاح: استفاده از data بجای responseData
+            localStorage.setItem('userEmail', currentUser.email);
+            localStorage.setItem('isSubscribed', 'true');
+            
+            alert('اشتراک با موفقیت فعال شد.');
             window.location.href = '/index.html';
         } else {
-            alert(data?.message || 'خرید ناموفق بود.');
+            alert(data.message || 'خطا در خرید اشتراک');
         }
     } catch (err) {
         console.error('خطا در خرید اشتراک:', err);
-        alert('خطا در ارتباط با سرور');
     }
 }
