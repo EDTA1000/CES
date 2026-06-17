@@ -224,8 +224,8 @@ function updateUIForLoggedInUser(email, isSubscribed) {
         if(authContainer) authContainer.style.display = 'none';
         if(plansContainer) plansContainer.style.display = 'none';
         dashboardActions.innerHTML = `
-            <button onclick="window.location.href='/simulation-page.html'">ورود به صفحه شبیه‌سازی</button>
-            <button onclick="handleLogout()">خروج از اشتراک</button>
+            <button onclick="window.location.href='/simulation-page.html'" class="btn">ورود به صفحه شبیه‌سازی</button>
+            <button onclick="handleLogout()" class="btn">خروج از اشتراک</button>
         `;
     }
 }
@@ -303,6 +303,26 @@ document.addEventListener('keydown', async (event) => {
     }
 });
 
+function redirectToSimulation() {
+    window.location.href = '/simulation-page';
+}
+
+function redirectToCreatePiece() {
+    window.location.href = '/create-piece';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const simBtn = document.getElementById('simulation-btn');
+    const pieceBtn = document.getElementById('create-piece-btn');
+
+    if (simBtn) {
+        simBtn.addEventListener('click', redirectToSimulation);
+    }
+    
+    if (pieceBtn) {
+        pieceBtn.addEventListener('click', redirectToCreatePiece);
+    }
+});
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
