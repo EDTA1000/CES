@@ -1,26 +1,19 @@
+
 let currentUser = { 
     email: localStorage.getItem('userEmail') || null 
 };
-async function handleComment() {
-    const input = document.getElementById('comment-input-global');
-    const content = input.value.trim();
-    if (!content) return alert('لطفاً نظر خود را بنویسید.');
-    if (!currentUser.email) return alert('ابتدا ایمیل خود را در صفحه اشتراک ثبت کنید.');
 
-    const res = await fetch('/api/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: currentUser.email, content })
-    });
-    if (res.ok) {
-        input.value = '';
-        if (typeof loadComments === 'function') loadComments();
-    }
+function getElement(id) {
+    const el = document.getElementById(id);
+    if (!el) console.warn(`Warning: Element with id "${id}" not found in DOM.`);
+    return el;
 }
+
+
 async function updateSubscriptionUI() {
     const email = localStorage.getItem('userEmail');
-    const freePlanCard = document.getElementById('free-plan-card');
-    const subscriptionBox = document.getElementById('subscription-plans');
+    const freePlanCard = getElement('free-plan-card');
+    const subscriptionBox = getElement('subscription-plans');
 
     if (!email) {
         if (subscriptionBox) subscriptionBox.classList.add('hidden');
@@ -28,143 +21,49 @@ async function updateSubscriptionUI() {
     }
 
     try {
-        const response = await fetch(`/api/check-user-status?email=${email}`);
-        const result = await response.json();
 
-        if (subscriptionBox) {
-            subscriptionBox.classList.remove('hidden');
+        if (subscriptionBox) subscriptionBox.classList.remove('hidden');
+
+        const response = await fetch(`/api/check-user-status?email=${encodeURIComponent(email)}`);
+        
+        if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
         }
 
+        const result = await response.json();
+        console.log("User Status Received:", result.status);
+
         if (result.status === 'new' || result.status === 'active') {
-            console.log("Status:", result.status, "- Showing free plan card.");
             if (freePlanCard) {
-                sfreePlanCard.style.display = 'block'; 
+                freePlanCard.style.display = 'block';
             }
         } else if (result.status === 'expired') {
-
-            console.log("Status: expired - Hiding free plan card.");
             if (freePlanCard) {
-                freePlanCard.style.display = 'none'; 
+                freePlanCard.style.display = 'none';
             }
+        } else {
+            if (freePlanCard) freePlanCard.style.display = 'block';
         }
 
     } catch (error) {
-        console.error("Error updating UI:", error);
-        if (subscriptionBox) subscriptionBox.classList.add('hidden');
+        console.error("Error updating Subscription UI:", error);
+
+        if (subscriptionBox) subscriptionBox.classList.remove('hidden');
+
+        if (freePlanCard) freePlanCard.style.display = 'block';
     }
 }
 
-document.addEventListener('DOMContentLoaded', updateSubscriptionUI);
-
-document.addEventListener('DOMContentLoaded', () => {
-    const subscribeBtn = document.getElementById('subscribe-submit-btn'); 
-    
-    if (subscribeBtn) {
-        subscribeBtn.addEventListener('click', handleSubscribe);
-    }
-});
-
-async function handleSubscribe() {
-    const emailInput = document.getElementById('email');
-    if (!emailInput) {
-        console.error('Element with id "email" not found.');
-        alert('خطای داخلی: فیلد ایمیل پیدا نشد.');
-        return;
-    }
-
-    const email = emailInput.value.trim();
-
-    if (!email) {
-        alert('لطفاً ایمیل خود را وارد کنید.');
-        return;
-    }
-
-    try {
-        const statusResponse = await fetch('/api/check-user-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-
-        if (!statusResponse.ok) {
-            const errorData = await statusResponse.json().catch(() => ({ message: 'خطای نامشخص سرور' }));
-            alert(errorData.message || `خطا در بررسی وضعیت کاربر (Status: ${statusResponse.status})`);
-            console.error('Error checking user status:', errorData);
-            return;
-        }
-
-        const statusData = await statusResponse.json();
-
-
-        const activateResponse = await fetch('/api/activate-free-trial', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email }) 
-        });
-
-        if (!activateResponse.ok) {
-            const errorData = await activateResponse.json().catch(() => ({ message: 'خطای نامشخص سرور' }));
-            alert(errorData.message || `خطا در فعال‌سازی اشتراک (Status: ${activateResponse.status})`);
-            console.error('Error activating free trial:', errorData);
-            return;
-        }
-
-        currentUser.email = email;
-        alert('اشتراک رایگان شما با موفقیت فعال شد!');
-
-        const emailForm = document.getElementById('email-form-container');
-        const plans = document.getElementById('subscription-plans');
-
-        if (emailForm) emailForm.classList.add('hidden');
-        if (plans) plans.classList.remove('hidden');
-
-    } catch (err) {
-        console.error('خطای کلی در فرآیند ثبت نام:', err);
-        alert('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.');
-    }
-}
-
-async function updateUIBasedOnStatus(email) {
-    const purchaseBtn = document.getElementById('subscribe-submit-btn');
-    if (!purchaseBtn) return;
-
-    try {
-        const response = await fetch('/api/check-user-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        
-        const result = await response.json();
-        if (!result.success || !result.data) return;
-
-        const { is_subscribed, expiryDate } = result.data;
-        const now = new Date();
-        const expiry = expiryDate ? new Date(expiryDate) : null;
-        const isExpired = expiry && expiry < now;
-
-        if (is_subscribed && !isExpired) {
-            purchaseBtn.style.display = 'none';
-            console.log('اشتراک فعال است.');
-        } else {
-            purchaseBtn.style.display = 'block';
-            purchaseBtn.textContent = isExpired ? 'تمدید اشتراک' : 'شروع اشتراک';
-        }
-    } catch (err) {
-        console.error('خطا در به‌روزرسانی UI:', err);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const userEmail = localStorage.getItem('userEmail');
-    if (userEmail) {
-        updateUIBasedOnStatus(userEmail);
-    }
-});
 
 async function buyPlan(planId) {
-    if (!currentUser.email) {
-        alert('ابتدا ایمیل خود را ثبت کنید.');
+    if (planId === '7days-free') {
+        await handleFreeTrialActivation();
+        return;
+    }
+
+    const email = localStorage.getItem('userEmail');
+    if (!email) {
+        alert('ابتدا ایمیل خود را در صفحه اشتراک ثبت کنید.');
         return;
     }
 
@@ -172,21 +71,166 @@ async function buyPlan(planId) {
         const response = await fetch('/api/purchase', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: currentUser.email, planId })
+            body: JSON.stringify({ email, planId })
         });
 
         const data = await response.json(); 
 
         if (response.ok && data.success) {
-            localStorage.setItem('userEmail', currentUser.email);
+            localStorage.setItem('userEmail', email);
             localStorage.setItem('isSubscribed', 'true');
-            
             alert('اشتراک با موفقیت فعال شد.');
             window.location.href = '/index.html';
         } else {
             alert(data.message || 'خطا در خرید اشتراک');
         }
     } catch (err) {
-        console.error('خطا در خرید اشتراک:', err);
+        console.error('Error during paid subscription:', err);
+        alert('خطا در ارتباط با سرور برای خرید پلن.');
+    }
+}
+
+
+async function handleFreeTrialActivation() {
+    const email = localStorage.getItem('userEmail');
+    if (!email) {
+        alert('لطفاً ابتدا ایمیل خود را در فرم زیر وارد و ثبت کنید.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/activate-free-trial', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }) 
+        });
+
+        const data = await response.json(); 
+
+        if (response.ok && data.success) {
+            localStorage.setItem('isSubscribed', 'true');
+            alert(data.message || 'اشتراک رایگان با موفقیت فعال شد.');
+            await updateSubscriptionUI();
+        } else {
+            alert(data.message || 'خطا در فعال‌سازی اشتراک رایگان');
+        }
+    } catch (err) {
+        console.error('Error activating free trial:', err);
+        alert('خطا در ارتباط با سرور برای فعال‌سازی رایگان.');
+    }
+}
+
+async function handleSubscribe() {
+    const emailInput = getElement('email');
+    if (!emailInput) return;
+
+    const email = emailInput.value.trim();
+    if (!email) {
+        alert('لطفاً ایمیل خود را وارد کنید.');
+        return;
+    }
+
+    try {
+        const statusResponse = await fetch(`/api/check-user-status?email=${encodeURIComponent(email)}`);
+        
+        if (!statusResponse.ok) {
+            const errorData = await statusResponse.json().catch(() => ({}));
+            throw new Error(errorData.message || 'خطای بررسی وضعیت');
+        }
+
+        const statusData = await statusResponse.json();
+        currentUser.email = email;
+        localStorage.setItem('userEmail', email);
+
+        const activateResponse = await fetch('/api/activate-free-trial', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }) 
+        });
+
+        const activateData = await activateResponse.json();
+
+        if (activateResponse.ok && activateData.success) {
+            alert('اشتراک رایگان شما با موفقیت فعال شد!');
+            
+            const emailForm = getElement('email-form-container');
+            const plans = getElement('subscription-plans');
+            if (emailForm) emailForm.classList.add('hidden');
+            if (plans) plans.classList.remove('hidden');
+            
+            await updateSubscriptionUI();
+        } else {
+            alert(activateData.message || 'خطا در فعال‌سازی.');
+        }
+
+    } catch (err) {
+        console.error('Error in registration process:', err);
+        alert(err.message || 'خطا در ارتباط با سرور.');
+    }
+}
+
+
+async function handleComment() {
+    const input = getElement('comment-input-global');
+    if (!input) return;
+    
+    const content = input.value.trim();
+    if (!content) return alert('لطفاً نظر خود را بنویسید.');
+    if (!currentUser.email) return alert('ابتدا ایمیل خود را در صفحه اشتراک ثبت کنید.');
+
+    try {
+        const res = await fetch('/api/comments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email, content })
+        });
+        
+        if (res.ok) {
+            input.value = '';
+            if (typeof loadComments === 'function') loadComments();
+        } else {
+            alert('خطا در ارسال نظر.');
+        }
+    } catch (err) {
+        console.error('Error posting comment:', err);
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateSubscriptionUI();
+
+    const subscribeBtn = getElement('subscribe-submit-btn'); 
+    if (subscribeBtn) {
+        subscribeBtn.addEventListener('click', handleSubscribe);
+    }
+
+    const userEmail = localStorage.getItem('userEmail');
+    if (userEmail) {
+ 
+        if (typeof updateUIBasedOnStatus === 'function') {
+            updateUIBasedOnStatus(userEmail);
+        }
+    }
+});
+
+async function updateUIBasedOnStatus(email) {
+    const purchaseBtn = getElement('subscribe-submit-btn');
+    if (!purchaseBtn) return;
+
+    try {
+        const response = await fetch(`/api/check-user-status?email=${encodeURIComponent(email)}`);
+        const result = await response.json();
+        
+        if (!result.status) return;
+
+        if (result.status === 'active') {
+            purchaseBtn.style.display = 'none';
+        } else {
+            purchaseBtn.style.display = 'block';
+            purchaseBtn.textContent = (result.status === 'expired') ? 'تمدید اشتراک' : 'شروع اشتراک';
+        }
+    } catch (err) {
+        console.error('Error updating status button:', err);
     }
 }
