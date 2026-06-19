@@ -19,8 +19,8 @@ async function handleComment() {
 }
 async function updateSubscriptionUI() {
     const email = localStorage.getItem('userEmail');
-    const freePlanCard = document.getElementById('free-plan-card'); 
-    const subscriptionBox = document.getElementById('subscription-plans'); 
+    const freePlanCard = document.getElementById('free-plan-card');
+    const subscriptionBox = document.getElementById('subscription-plans');
 
     if (!email) {
         if (subscriptionBox) subscriptionBox.classList.add('hidden');
@@ -28,29 +28,30 @@ async function updateSubscriptionUI() {
     }
 
     try {
-
-        const response = await fetch(`/api/check-user-existence?email=${email}`);
+        const response = await fetch(`/api/check-user-status?email=${email}`);
         const result = await response.json();
 
         if (subscriptionBox) subscriptionBox.classList.remove('hidden');
 
-        if (result.hasHistory) {
+        if (result.status === 'new' || result.status === 'active') {
+            console.log("Status:", result.status, "- Showing free plan card.");
             if (freePlanCard) {
-                console.log("User has history. Hiding the free plan card.");
-                freePlanCard.style.display = 'none';
-            }
-        } else {
-            if (freePlanCard) {
-                console.log("New user. Showing the free plan card.");
                 freePlanCard.style.display = 'block';
+            }
+        } else if (result.status === 'expired') {
+            console.log("Status: expired - Hiding free plan card.");
+            if (freePlanCard) {
+                freePlanCard.style.display = 'none';
             }
         }
 
     } catch (error) {
         console.error("Error updating UI:", error);
-        if (freePlanCard) freePlanCard.style.display = 'none';
     }
 }
+
+document.addEventListener('DOMContentLoaded', updateSubscriptionUI);
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const subscribeBtn = document.getElementById('subscribe-submit-btn'); 
