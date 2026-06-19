@@ -122,51 +122,50 @@ async function handleFreeTrialActivation() {
 
 async function handleSubscribe() {
     const emailInput = getElement('email');
-    const emailFormContainer = getElement('email-form-container'); 
+    const emailFormContainer = getElement('email-form-container');
     const subscriptionPlans = getElement('subscription-plans');
 
     if (!emailInput) return;
 
     const email = emailInput.value.trim();
     if (!email) {
-        alert('لطفاً ایمیل خود را وارد کنید.');
+        alert('لطفاً ابتدا ایمیل خود را وارد کنید.');
         return;
     }
 
     try {
-        const activateResponse = await fetch('/api/activate-free-trial', {
+        const response = await fetch('/api/activate-free-trial', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }) 
         });
 
-        const activateData = await activateResponse.json();
+        const data = await response.json();
 
-        if (activateResponse.ok && activateData.success) {
+        if (response.ok && data.success) {
             localStorage.setItem('userEmail', email);
             localStorage.setItem('isSubscribed', 'true');
-            window.location.href = '/index.html'; 
-            alert(activateData.message || 'اشتراک رایگان با موفقیت فعال شد!');
-
-            if (emailFormContainer) {
-                emailFormContainer.classList.add('hidden'); 
-            }
-            if (subscriptionPlans) {
-                subscriptionPlans.classList.remove('hidden'); 
-            }
-
-            await updateSubscriptionUI();
+            
+            alert(data.message || 'اشتراک با موفقیت فعال شد!');
+            
+            window.location.href = '/index.html';
 
         } else {
-            alert(activateData.message || 'خطا در فعال‌سازی.');
+            
+            if (response.status === 400) {
+                alert(data.message || 'خطا: این اشتراک قابل استفاده نیست.');
+            } else {
+                alert(data.message || 'خطای ناشناخته در سرور.');
+            }
+
             if (emailFormContainer) emailFormContainer.classList.add('hidden');
             if (subscriptionPlans) subscriptionPlans.classList.remove('hidden');
             await updateSubscriptionUI();
         }
 
     } catch (err) {
-        console.error('Error in registration process:', err);
-        alert('خطا در ارتباط با سرور.');
+        console.error('System Error:', err);
+        alert('خطا در ارتباط با سرور. لطفاً اتصال خود را بررسی کنید.');
     }
 }
 
