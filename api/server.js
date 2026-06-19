@@ -98,38 +98,40 @@ app.post('/api/purchase', async (req, res) => {
     return res.status(500).json({ success: false, message: 'خطای داخلی سرور.' });
   }
 });
-
 app.post('/api/subscribe-trial', async (req, res) => {
   try {
     const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'ایمیل الزامی است.' });
 
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'ایمیل الزامی است.' });
+    const { data: user, error: fetchError } = await supabase
+      .from('users')
+      .select('is_subscribed')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (user && user.is_subscribed) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'اشتراک قبلی شما معتبر است یا قبلاً استفاده شده است.' 
+      });
     }
-
     const startDate = new Date();
     const expiryDate = new Date(startDate);
     expiryDate.setDate(startDate.getDate() + 7);
 
-    try {
-      await supabase.from('users').upsert([
-        {
-          email,
-          plan: 'trial',
-          is_subscribed: true,
-          startDate: startDate.toISOString(),
-          expiryDate: expiryDate.toISOString()
-        }
-      ]);
-    } catch (dbErr) {
-      console.error('Error saving trial subscription:', dbErr);
-    }
-
-    console.log(`اشتراک ۷ روزه برای ${email} فعال شد. انقضا: ${expiryDate.toDateString()}`);
+    await supabase.from('users').upsert([
+      {
+        email,
+        plan: 'trial',
+        is_subscribed: true,
+        startDate: startDate.toISOString(),
+        expiryDate: expiryDate.toISOString()
+      }
+    ]);
 
     return res.status(200).json({
       success: true,
-      message: 'اشتراک ۷ روزه رایگان فعال شد!',
+      message: 'اشتراک فعال شد!',
       expiry: expiryDate.toLocaleDateString('fa-IR')
     });
   } catch (error) {
@@ -137,6 +139,7 @@ app.post('/api/subscribe-trial', async (req, res) => {
     return res.status(500).json({ success: false, message: 'خطای داخلی سرور.' });
   }
 });
+
 app.post('/api/activate-free-trial', async (req, res) => {
   const { email } = req.body;
   if (!email) {
@@ -144,22 +147,44 @@ app.post('/api/activate-free-trial', async (req, res) => {
   }
 
   try {
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('users')
+      .select('is_subscribed, expiryDate, plan')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (existingUser && existingUser.is_subscribed) {
+      console.log(`User ${email} already had a subscription. Denying new free trial.`);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'شما قبلاً از اشتراک رایگان استفاده کرده‌اید و امکان استفاده مجدد وجود ندارد.' 
+      });
+    }
+
     const startDate = new Date();
     const expiryDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .from('users')
       .upsert([
-        { email: email, is_subscribed: true, plan: 'free', startDate: startDate.toISOString(), expiryDate: expiryDate.toISOString() }
+        { 
+          email: email, 
+          is_subscribed: true, 
+          plan: 'free', 
+          startDate: startDate.toISOString(), 
+          expiryDate: expiryDate.toISOString() 
+        }
       ]);
 
-    if (error) throw error;
-    res.status(200).json({ success: true, message: 'Free trial activated' });
+    if (updateError) throw updateError;
+
+    res.status(200).json({ success: true, message: 'اشتراک رایگان با موفقیت فعال شد' });
   } catch (error) {
     console.error('Error activating free trial:', error);
     res.status(500).json({ success: false, error: error.message });
   }
-})
+});
 
 
 app.post('/api/decline-free-trial', async (req, res) => {
