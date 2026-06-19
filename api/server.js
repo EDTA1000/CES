@@ -175,29 +175,34 @@ app.post('/api/activate-free-trial', async (req, res) => {
   try {
     const { data: user } = await supabase
       .from('users')
-      .select('expiryDate, is_subscribed')
+      .select('expiryDate, is_subscribed, plan')
       .eq('email', email)
       .maybeSingle();
 
+    const now = new Date();
+
     if (user) {
       const expiryDate = new Date(user.expiryDate);
-      const now = new Date();
+
       if (user.is_subscribed && expiryDate > now) {
         return res.status(400).json({ 
           success: false, 
+          status: 'active',
           message: 'شما در حال حاضر اشتراک فعال دارید.' 
         });
       }
-      
       if (user.is_subscribed && expiryDate <= now) {
-          return res.status(400).json({ 
-            success: false, 
-            message: 'اشتراک رایگان یک‌بار مصرف است و قابل تمدید نیست.' 
-          });
+        return res.status(200).json({ 
+          success: true, 
+          status: 'expired', 
+          message: 'اشتراک شما منقضی شده است. می‌توانید اشتراک جدید بخرید.' 
+        });
       }
     }
+
     const startDate = new Date();
     const expiryDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
     await supabase.from('users').upsert({
       email,
       is_subscribed: true,
@@ -206,12 +211,12 @@ app.post('/api/activate-free-trial', async (req, res) => {
       expiryDate: expiryDate.toISOString()
     });
 
-    res.status(200).json({ success: true, message: 'اشتراک با موفقیت فعال شد' });
+    res.status(200).json({ success: true, status: 'new', message: 'اشتراک رایگان با موفقیت فعال شد' });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 app.get('/api/check-user-existence', async (req, res) => {
   const email = req.query.email;

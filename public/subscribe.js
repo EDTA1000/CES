@@ -126,12 +126,7 @@ async function handleSubscribe() {
     const subscriptionPlans = getElement('subscription-plans');
 
     if (!emailInput) return;
-
     const email = emailInput.value.trim();
-    if (!email) {
-        alert('لطفاً ابتدا ایمیل خود را وارد کنید.');
-        return;
-    }
 
     try {
         const response = await fetch('/api/activate-free-trial', {
@@ -143,31 +138,48 @@ async function handleSubscribe() {
         const data = await response.json();
 
         if (response.ok && data.success) {
-            localStorage.setItem('userEmail', email);
-            localStorage.setItem('isSubscribed', 'true');
+            if (data.status === 'new' || data.status === 'free') {
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('isSubscribed', 'true');
+                alert(data.message);
+                window.location.href = '/index.html';
+            } 
             
-            alert(data.message || 'اشتراک با موفقیت فعال شد!');
-            
-            window.location.href = '/index.html';
-
-        } else {
-            
-            if (response.status === 400) {
-                alert(data.message || 'خطا: این اشتراک قابل استفاده نیست.');
-            } else {
-                alert(data.message || 'خطای ناشناخته در سرور.');
+            else if (data.status === 'expired') {
+                alert(data.message);
+                
+                if (emailFormContainer) emailFormContainer.classList.add('hidden');
+                
+                if (subscriptionPlans) subscriptionPlans.classList.remove('hidden');
+                
+                renderSubscriptionOptions(true); 
             }
-
-            if (emailFormContainer) emailFormContainer.classList.add('hidden');
-            if (subscriptionPlans) subscriptionPlans.classList.remove('hidden');
-            await updateSubscriptionUI();
+        } else {
+            if (data.status === 'active') {
+                alert(data.message);
+                window.location.href = '/index.html';
+            } else {
+                alert(data.message || 'خطایی رخ داد.');
+            }
         }
-
     } catch (err) {
-        console.error('System Error:', err);
-        alert('خطا در ارتباط با سرور. لطفاً اتصال خود را بررسی کنید.');
+        console.error(err);
+        alert('خطا در ارتباط با سرور.');
     }
 }
+
+function renderSubscriptionOptions(showPaidPlans) {
+    const freePlanBtn = getElement('btn-free-plan'); 
+    const paidPlanBtn = getElement('btn-paid-plan'); 
+
+    if (showPaidPlans) {
+        if (freePlanBtn) freePlanBtn.classList.remove('hidden');
+        if (paidPlanBtn) paidPlanBtn.classList.remove('hidden');
+    } else {
+        if (paidPlanBtn) paidPlanBtn.classList.add('hidden');
+    }
+}
+
 
 
 
