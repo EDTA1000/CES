@@ -31,27 +31,30 @@ async function updateSubscriptionUI() {
         const response = await fetch(`/api/check-user-status?email=${email}`);
         const result = await response.json();
 
-        if (subscriptionBox) subscriptionBox.classList.remove('hidden');
+        if (subscriptionBox) {
+            subscriptionBox.classList.remove('hidden');
+        }
 
         if (result.status === 'new' || result.status === 'active') {
             console.log("Status:", result.status, "- Showing free plan card.");
             if (freePlanCard) {
-                freePlanCard.style.display = 'block';
+                sfreePlanCard.style.display = 'block'; 
             }
         } else if (result.status === 'expired') {
+
             console.log("Status: expired - Hiding free plan card.");
             if (freePlanCard) {
-                freePlanCard.style.display = 'none';
+                freePlanCard.style.display = 'none'; 
             }
         }
 
     } catch (error) {
         console.error("Error updating UI:", error);
+        if (subscriptionBox) subscriptionBox.classList.add('hidden');
     }
 }
 
 document.addEventListener('DOMContentLoaded', updateSubscriptionUI);
-
 
 document.addEventListener('DOMContentLoaded', () => {
     const subscribeBtn = document.getElementById('subscribe-submit-btn'); 
