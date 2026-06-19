@@ -17,6 +17,41 @@ async function handleComment() {
         if (typeof loadComments === 'function') loadComments();
     }
 }
+async function updateSubscriptionUI() {
+    const email = localStorage.getItem('userEmail');
+    const freePlanCard = document.getElementById('free-plan-card'); 
+    const subscriptionBox = document.getElementById('subscription-plans'); 
+
+    if (!email) {
+        if (subscriptionBox) subscriptionBox.classList.add('hidden');
+        return;
+    }
+
+    try {
+
+        const response = await fetch(`/api/check-user-existence?email=${email}`);
+        const result = await response.json();
+
+        if (subscriptionBox) subscriptionBox.classList.remove('hidden');
+
+        if (result.hasHistory) {
+            if (freePlanCard) {
+                console.log("User has history. Hiding the free plan card.");
+                freePlanCard.style.display = 'none';
+            }
+        } else {
+            if (freePlanCard) {
+                console.log("New user. Showing the free plan card.");
+                freePlanCard.style.display = 'block';
+            }
+        }
+
+    } catch (error) {
+        console.error("Error updating UI:", error);
+        if (freePlanCard) freePlanCard.style.display = 'none';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const subscribeBtn = document.getElementById('subscribe-submit-btn'); 
     

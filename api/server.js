@@ -140,49 +140,116 @@ app.post('/api/subscribe-trial', async (req, res) => {
   }
 });
 
-app.post('/api/activate-free-trial', async (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    return res.status(400).json({ success: false, message: 'Email is required' });
-  }
+// مسیری برای چک کردن وضعیت کاربر جهت نمایش یا عدم نمایش دکمه
+app.get('/api/check-user-existence', async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
 
   try {
-    const { data: existingUser, error: fetchError } = await supabase
+    // فقط چک می‌کنیم که آیا ایمیل در جدول کاربران وجود دارد یا خیر
+    const { data, error } = await supabase
       .from('users')
-      .select('is_subscribed, expiryDate, plan')
+      .select('email')
       .eq('email', email)
       .maybeSingle();
 
-    if (fetchError) throw fetchError;
-    if (existingUser && existingUser.is_subscribed) {
-      console.log(`User ${email} already had a subscription. Denying new free trial.`);
-      return res.status(400).json({ 
-        success: false, 
-        message: 'شما قبلاً از اشتراک رایگان استفاده کرده‌اید و امکان استفاده مجدد وجود ندارد.' 
-      });
+    if (error) throw error;
+
+    // اگر دیتا وجود داشت، یعنی کاربر قبلاً ثبت‌نام کرده (حتی اگر اشتراک رایگان نداشته باشد)
+    // اما طبق خواسته شما، اگر قبلاً در جدول users بوده، یعنی سابقه دارد.
+    if (data) {
+      return res.json({ hasHistory: true });
+    } else {
+      return res.json({ hasHistory: false });
+    }
+  } catch (err) {
+    console.error('Error checking user existence:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/activate-free-trial', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'شما قبلاً از این سرویس استفاده کرده‌اید.' });
     }
 
     const startDate = new Date();
     const expiryDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    const { error: updateError } = await supabase
+    await supabase.from('users').insert([{
+      email,
+      is_subscribed: true,
+      plan: 'free',
+      startDate: startDate.toISOString(),
+      expiryDate: expiryDate.toISOString()
+    }]);
+
+    res.status(200).json({ success: true, message: 'اشتراک فعال شد' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/check-user-existence', async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  try {
+    const { data, error } = await supabase
       .from('users')
-      .upsert([
-        { 
-          email: email, 
-          is_subscribed: true, 
-          plan: 'free', 
-          startDate: startDate.toISOString(), 
-          expiryDate: expiryDate.toISOString() 
-        }
-      ]);
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
 
-    if (updateError) throw updateError;
+    if (error) throw error;
 
-    res.status(200).json({ success: true, message: 'اشتراک رایگان با موفقیت فعال شد' });
-  } catch (error) {
-    console.error('Error activating free trial:', error);
-    res.status(500).json({ success: false, error: error.message });
+    if (data) {
+      return res.json({ hasHistory: true });
+    } else {
+      return res.json({ hasHistory: false });
+    }
+  } catch (err) {
+    console.error('Error checking user existence:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+app.post('/api/activate-free-trial', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'شما قبلاً از این سرویس استفاده کرده‌اید.' });
+    }
+
+    const startDate = new Date();
+    const expiryDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    await supabase.from('users').insert([{
+      email,
+      is_subscribed: true,
+      plan: 'free',
+      startDate: startDate.toISOString(),
+      expiryDate: expiryDate.toISOString()
+    }]);
+
+    res.status(200).json({ success: true, message: 'اشتراک فعال شد' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
