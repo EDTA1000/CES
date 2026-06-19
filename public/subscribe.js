@@ -122,6 +122,9 @@ async function handleFreeTrialActivation() {
 
 async function handleSubscribe() {
     const emailInput = getElement('email');
+    const emailFormContainer = getElement('email-form-container'); 
+    const subscriptionPlans = getElement('subscription-plans');
+
     if (!emailInput) return;
 
     const email = emailInput.value.trim();
@@ -131,17 +134,6 @@ async function handleSubscribe() {
     }
 
     try {
-        const statusResponse = await fetch(`/api/check-user-status?email=${encodeURIComponent(email)}`);
-        
-        if (!statusResponse.ok) {
-            const errorData = await statusResponse.json().catch(() => ({}));
-            throw new Error(errorData.message || 'خطای بررسی وضعیت');
-        }
-
-        const statusData = await statusResponse.json();
-        currentUser.email = email;
-        localStorage.setItem('userEmail', email);
-
         const activateResponse = await fetch('/api/activate-free-trial', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -151,23 +143,33 @@ async function handleSubscribe() {
         const activateData = await activateResponse.json();
 
         if (activateResponse.ok && activateData.success) {
-            alert('اشتراک رایگان شما با موفقیت فعال شد!');
-            
-            const emailForm = getElement('email-form-container');
-            const plans = getElement('subscription-plans');
-            if (emailForm) emailForm.classList.add('hidden');
-            if (plans) plans.classList.remove('hidden');
-            
+            localStorage.setItem('userEmail', email);
+            localStorage.setItem('isSubscribed', 'true');
+            window.location.href = '/index.html'; 
+            alert(activateData.message || 'اشتراک رایگان با موفقیت فعال شد!');
+
+            if (emailFormContainer) {
+                emailFormContainer.classList.add('hidden'); 
+            }
+            if (subscriptionPlans) {
+                subscriptionPlans.classList.remove('hidden'); 
+            }
+
             await updateSubscriptionUI();
+
         } else {
             alert(activateData.message || 'خطا در فعال‌سازی.');
+            if (emailFormContainer) emailFormContainer.classList.add('hidden');
+            if (subscriptionPlans) subscriptionPlans.classList.remove('hidden');
+            await updateSubscriptionUI();
         }
 
     } catch (err) {
         console.error('Error in registration process:', err);
-        alert(err.message || 'خطا در ارتباط با سرور.');
+        alert('خطا در ارتباط با سرور.');
     }
 }
+
 
 
 async function handleComment() {
